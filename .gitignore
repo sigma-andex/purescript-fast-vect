@@ -6,3 +6,8 @@ node_modules
 # Generated files
 .psci
 output
+.spago 
+
+# Editor config
+.psc-ide-port
+.purs-repl

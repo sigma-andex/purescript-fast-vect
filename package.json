@@ -1,0 +1,25 @@
+{
+  "name": "purescript-fast-vect",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sigma-andex/purescript-fast-vect.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sigma-andex/purescript-fast-vect/issues"
+  },
+  "homepage": "https://github.com/sigma-andex/purescript-fast-vect#readme",
+  "devDependencies": {
+    "purescript": "^0.14.2",
+    "purty": "^7.0.0",
+    "spago": "^0.20.3"
+  }
+}
