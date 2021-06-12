@@ -1,4 +1,4 @@
-module FastVect.Add where
+module Data.FastVect.Add where
 
 
 import Prim.Symbol (class Cons)
