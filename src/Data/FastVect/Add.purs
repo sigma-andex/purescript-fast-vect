@@ -2,13 +2,14 @@ module Data.FastVect.Add where
 
 
 import Prim.Symbol (class Cons)
+import Prim.TypeError (class Fail, Above, Beside, Text)
+import Type.Prelude (Proxy(..))
 
 
-class AddSingle (augend :: Symbol) (addend :: Symbol) (carry :: Symbol) (sum :: Symbol) | augend addend -> carry sum 
+class AddSingle (augend :: Symbol) (addend :: Symbol) (carry :: Symbol) (sum :: Symbol) | augend addend -> carry sum, augend carry sum -> addend, addend carry sum -> augend 
 
 
 instance AddSingle "0" "0" "0" "0"
-else instance AddSingle "0" "0" "0" "0"
 else instance AddSingle "1" "0" "0" "1"
 else instance AddSingle "2" "0" "0" "2"
 else instance AddSingle "3" "0" "0" "3"
@@ -108,8 +109,9 @@ else instance AddSingle "6" "9" "1" "5"
 else instance AddSingle "7" "9" "1" "6"
 else instance AddSingle "8" "9" "1" "7"
 else instance AddSingle "9" "9" "1" "8"
+else instance (Fail (Text "I couldn't add up the numbers you gave me. Are you trying to take too many elements from a vector?")) => AddSingle u a c s 
 
-class AddHelper1 (augendHead :: Symbol) (augendTail :: Symbol) (addendHead :: Symbol) (addendTail :: Symbol) (carry :: Symbol) (sum :: Symbol) | augendHead augendTail addendHead addendTail -> carry sum 
+class AddHelper1 (augendHead :: Symbol) (augendTail :: Symbol) (addendHead :: Symbol) (addendTail :: Symbol) (carry :: Symbol) (sum :: Symbol) | augendHead augendTail addendHead addendTail -> carry sum, augendHead augendTail carry sum -> addendHead addendTail, addendHead addendTail carry sum -> augendHead augendTail 
 
 instance (
     AddSingle augendHead addendHead carry sum 
@@ -119,7 +121,7 @@ else instance (
 , AddSingle augendHead tailCarry x carry 
 ) => AddHelper1 augendHead augendTail "0" addendTail carry sum 
 
-class AddHelper (augendHead :: Symbol) (augendTail :: Symbol) (addendHead :: Symbol) (addendTail :: Symbol) (carry :: Symbol) (sum :: Symbol) | augendHead augendTail addendHead addendTail -> carry sum 
+class AddHelper (augendHead :: Symbol) (augendTail :: Symbol) (addendHead :: Symbol) (addendTail :: Symbol) (carry :: Symbol) (sum :: Symbol) | augendHead augendTail addendHead addendTail -> carry sum, augendHead augendTail carry sum -> addendHead addendTail, addendHead addendTail carry sum -> augendHead augendTail 
 
 instance (AddSingle augendHead addendHead carry sum) => AddHelper augendHead "" addendHead "" carry sum
 else instance (AddSingle augendHead addendHead headCarry headSum
@@ -132,7 +134,45 @@ else instance (AddSingle augendHead addendHead headCarry headSum
     AddHelper augendHead augendTail addendHead addendTail carry sum 
 
 
-class Add (augend :: Symbol) (addend :: Symbol) (carry :: Symbol) (sum :: Symbol) | augend addend -> carry sum 
+class Add (augend :: Symbol) (addend :: Symbol) (carry :: Symbol) (sum :: Symbol) | augend addend -> carry sum, augend carry sum -> addend
 instance (Cons augendHead augendTail augend, 
     Cons addendHead addendTail addend, 
     AddHelper augendHead augendTail addendHead addendTail carry sum) => Add augend addend carry sum 
+
+
+term :: forall sym. Proxy sym
+term = Proxy 
+
+sum :: forall augend addend carry sum result. 
+    Add augend addend carry sum => Cons carry sum result => Proxy augend -> Proxy addend -> Proxy result 
+sum _ _ = Proxy 
+
+take :: forall n m carry sum result. 
+    Add n m carry sum =>
+    Cons carry sum result => 
+    Proxy n -> Proxy result -> Proxy n 
+take _ _ = Proxy 
+
+
+s :: Proxy "038"
+s = sum (term :: _ "19") (term :: _ "19")
+
+
+t :: Proxy "04363"
+t = sum (term :: _ "4220") (term :: _ "0143")
+
+u :: Proxy "040787"
+u = sum (term :: _ "17220") (term :: _ "23567")
+
+v :: Proxy "077868"
+v = sum (term :: _ "23423") (term :: _ "54445")
+
+x :: Proxy "03543525"
+x = sum (term :: _ "1231293") (term :: _ "2312232")
+
+z :: Proxy "4"
+z = take (term :: _ "4") (term :: _ "04")
+
+z1 = take (term :: _ "10") (term :: _ "011")
+
+--z2 = take (term :: _ "5") (term :: _ "04")
