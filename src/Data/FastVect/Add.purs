@@ -109,7 +109,7 @@ else instance AddSingle "6" "9" "1" "5"
 else instance AddSingle "7" "9" "1" "6"
 else instance AddSingle "8" "9" "1" "7"
 else instance AddSingle "9" "9" "1" "8"
-else instance (Fail (Text "I couldn't add up the numbers you gave me. Are you trying to take too many elements from a vector?")) => AddSingle u a c s 
+else instance (Fail (Text "I couldn't find a solution for the terms you are giving me. You are trying to add numbers that don't add up like 2 + 4 = 1 3. Verify that your augend, addend, carry and sum are correct.")) => AddSingle u a c s 
 
 class AddHelper1 (augendHead :: Symbol) (augendTail :: Symbol) (addendHead :: Symbol) (addendTail :: Symbol) (carry :: Symbol) (sum :: Symbol) | augendHead augendTail addendHead addendTail -> carry sum, augendHead augendTail carry sum -> addendHead addendTail, addendHead addendTail carry sum -> augendHead augendTail 
 
@@ -147,10 +147,10 @@ sum :: forall augend addend carry sum result.
     Add augend addend carry sum => Cons carry sum result => Proxy augend -> Proxy addend -> Proxy result 
 sum _ _ = Proxy 
 
-take :: forall n m carry sum result. 
-    Add n m carry sum =>
+take :: forall augend addend carry sum result. 
+    Add augend addend carry sum =>
     Cons carry sum result => 
-    Proxy n -> Proxy result -> Proxy n 
+    Proxy augend -> Proxy result -> Proxy augend
 take _ _ = Proxy 
 
 
@@ -172,6 +172,18 @@ x = sum (term :: _ "1231293") (term :: _ "2312232")
 
 z :: Proxy "4"
 z = take (term :: _ "4") (term :: _ "04")
+
+headSym :: forall h t v. Cons h t v => Proxy v -> Proxy h
+headSym _ = Proxy 
+
+tailSym :: forall h t v. Cons h t v => Proxy v -> Proxy t
+tailSym _ = Proxy 
+
+z2 :: Proxy "0"
+z2 = headSym (term :: _ "04")
+
+z3 :: Proxy "4"
+z3 = tailSym (term :: _ "04")
 
 z1 = take (term :: _ "10") (term :: _ "011")
 
