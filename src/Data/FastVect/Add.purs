@@ -109,21 +109,67 @@ else instance AddSingle "7" "9" "1" "6"
 else instance AddSingle "8" "9" "1" "7"
 else instance AddSingle "9" "9" "1" "8"
 
-class AddHelper1 (augendHead :: Symbol) (augendTail :: Symbol) (addendHead :: Symbol) (addendTail :: Symbol) (carry :: Symbol) (sum :: Symbol) | augendHead augendTail addendHead addendTail -> carry sum 
+class AddIntermediate (headCarry :: Symbol) (headSum :: Symbol) (tailCarry :: Symbol) (carry :: Symbol) (sum :: Symbol)
+     | headCarry headSum tailCarry -> carry sum
+    , headCarry headSum carry sum -> tailCarry 
+    , tailCarry carry sum -> headCarry headSum 
 
-instance (
-    AddSingle augendHead addendHead carry sum 
-) => AddHelper1 augendHead "" addendHead "" carry sum 
-else instance (
-    AddSingle augendTail addendTail tailCarry sum 
-, AddSingle augendHead tailCarry x carry 
-) => AddHelper1 augendHead augendTail "0" addendTail carry sum 
+instance AddIntermediate "0" "0" "0" "0" "0"
+else instance AddIntermediate "0" "1" "0" "0" "1"
+else instance AddIntermediate "0" "2" "0" "0" "2"
+else instance AddIntermediate "0" "3" "0" "0" "3"
+else instance AddIntermediate "0" "4" "0" "0" "4"
+else instance AddIntermediate "0" "5" "0" "0" "5"
+else instance AddIntermediate "0" "6" "0" "0" "6"
+else instance AddIntermediate "0" "7" "0" "0" "7"
+else instance AddIntermediate "0" "8" "0" "0" "8"
+else instance AddIntermediate "0" "9" "0" "0" "9"
+else instance AddIntermediate "1" "0" "0" "1" "0"
+else instance AddIntermediate "1" "1" "0" "1" "1"
+else instance AddIntermediate "1" "2" "0" "1" "2"
+else instance AddIntermediate "1" "3" "0" "1" "3"
+else instance AddIntermediate "1" "4" "0" "1" "4"
+else instance AddIntermediate "1" "5" "0" "1" "5"
+else instance AddIntermediate "1" "6" "0" "1" "6"
+else instance AddIntermediate "1" "7" "0" "1" "7"
+else instance AddIntermediate "1" "8" "0" "1" "8"
+
+else instance AddIntermediate "0" "0" "1" "0" "1"
+else instance AddIntermediate "0" "1" "1" "0" "2"
+else instance AddIntermediate "0" "2" "1" "0" "3"
+else instance AddIntermediate "0" "3" "1" "0" "4"
+else instance AddIntermediate "0" "4" "1" "0" "5"
+else instance AddIntermediate "0" "5" "1" "0" "6"
+else instance AddIntermediate "0" "6" "1" "0" "7"
+else instance AddIntermediate "0" "7" "1" "0" "8"
+else instance AddIntermediate "0" "8" "1" "0" "9"
+else instance AddIntermediate "0" "9" "1" "1" "0"
+else instance AddIntermediate "1" "0" "1" "1" "1"
+else instance AddIntermediate "1" "1" "1" "1" "2"
+else instance AddIntermediate "1" "2" "1" "1" "3"
+else instance AddIntermediate "1" "3" "1" "1" "4"
+else instance AddIntermediate "1" "4" "1" "1" "5"
+else instance AddIntermediate "1" "5" "1" "1" "6"
+else instance AddIntermediate "1" "6" "1" "1" "7"
+else instance AddIntermediate "1" "7" "1" "1" "8"
+else instance AddIntermediate "1" "8" "1" "1" "9"
+
+-- class AddHelper1 (augendHead :: Symbol) (augendTail :: Symbol) (addendHead :: Symbol) (addendTail :: Symbol) (carry :: Symbol) (sum :: Symbol) | augendHead augendTail addendHead addendTail -> carry sum 
+
+-- instance (
+--     AddSingle augendHead addendHead carry sum 
+-- ) => AddHelper1 augendHead "" addendHead "" carry sum 
+-- else instance (
+--     AddSingle augendTail addendTail tailCarry sum 
+-- , AddSingle augendHead tailCarry x carry 
+-- ) => AddHelper1 augendHead augendTail "0" addendTail carry sum 
 
 class AddHelper (augendHead :: Symbol) (augendTail :: Symbol) (addendHead :: Symbol) (addendTail :: Symbol) (carry :: Symbol) (sum :: Symbol) | augendHead augendTail addendHead addendTail -> carry sum 
 
 instance (AddSingle augendHead addendHead carry sum) => AddHelper augendHead "" addendHead "" carry sum
 else instance (AddSingle augendHead addendHead headCarry headSum
-, AddHelper1 headCarry headSum "0" tailCarry carry intermediateSum 
+--, AddHelper1 headCarry headSum "0" tailCarry carry intermediateSum 
+, AddIntermediate headCarry headSum tailCarry carry intermediateSum 
 , Cons augendTailHead augendTailTail augendTail 
 , Cons addendTailHead addendTailTail addendTail 
 , AddHelper augendTailHead augendTailTail addendTailHead addendTailTail tailCarry tailSum
