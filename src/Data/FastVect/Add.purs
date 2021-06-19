@@ -202,6 +202,17 @@ class Add2Helper (augendHead :: Symbol) (augendTail :: Symbol) (addendHead :: Sy
     , addendHead addendTail sum -> carry augendHead augendTail 
 
 instance (AddSingle augendHead addendHead carry sum) => Add2Helper augendHead "" addendHead "" carry sum 
+{-
+
+    forall t129 t130 t131 t152 t166 t168 t169 t171 t173. Cons t171 t173 t152 => 
+    AddSingle "0" t171 t168 t169 => 
+    AddIntermediate "0" "1" t168 t129 t166 => Cons t166 t169 t130 => Cons t129 t130 t131 => Proxy t131
+
+  has type variables which are not determined by those mentioned in the body of the type:
+
+    t152 could not be determined
+    t173 could not be determined
+-}
 else instance (
     Add2 augendTail addendTail tailCarry tailSum 
 , AddSingle augendHead addendHead headCarry headSum 
