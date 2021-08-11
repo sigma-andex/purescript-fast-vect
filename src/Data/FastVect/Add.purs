@@ -427,7 +427,7 @@ else instance
   , Cons addendHead addendTail addend
   , Cons sumHead sumTail sum
   , AddX augendTail addendTail carryPrevious sumTail 
-  , Add2 augendHead addendHead carryPrevious carry sumHead
+  , AddSingle2 augendHead addendHead carryPrevious carry sumHead
   ) ⇒
   AddX augend addend carry sum
 
@@ -456,6 +456,7 @@ test6b _ _ _ = Proxy
 --x = test (term :: _ "1") (term ∷ _ "5") (term ∷ _ "2")
 
 
+y :: Proxy "1"
 y = test (term :: _ "0") (term ∷ _ "5") (term ∷ _ "6")
 
 z :: Proxy "3"
@@ -463,19 +464,19 @@ z = test3 (term :: _ "1") (term :: _ "2")
 
 
 zz :: Proxy "33"
-zz = test3 (term :: _ "11") (term :: _ "22")
+zz = test3 (term :: Proxy "11") (term :: Proxy "22")
 
 a :: Proxy "1"
-a = test4 (term :: _ "1") (term :: _ "2")
+a = test4 (term :: Proxy "1") (term :: Proxy "2")
 
 aa :: Proxy "11"
-aa = test4 (term :: _ "11") (term :: _ "22")
+aa = test4 (term :: Proxy "11") (term :: Proxy "22")
 
 bb :: Proxy "176"
-bb = test5 (term :: _ "99") (term :: _ "77")
+bb = test5 (term :: Proxy "99") (term :: Proxy "77")
 
 cc :: Proxy "77"
-cc = test6 (term :: _ "99") (term :: _ "176")
+cc = test6 (term :: Proxy "99") (term :: Proxy "176")
 
 ccc :: Proxy "77"
-ccc = test6b (term :: _ "99") (term :: _ "1") (term :: _ "76")
+ccc = test6b (term :: Proxy "99") (term :: Proxy "1") (term :: Proxy "76")
