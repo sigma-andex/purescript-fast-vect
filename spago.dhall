@@ -12,7 +12,15 @@ to generate this file without the comments in this block.
 -}
 { name = "my-project"
 , dependencies =
-  [ "console", "effect", "prelude", "psci-support", "typelevel-prelude" ]
+  [ "arrays"
+  , "console"
+  , "effect"
+  , "integers"
+  , "prelude"
+  , "psci-support"
+  , "tuples"
+  , "typelevel-prelude"
+  ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
 }

@@ -108,10 +108,9 @@ else instance AddSingle "7" "9" "1" "6"
 else instance AddSingle "8" "9" "1" "7"
 else instance AddSingle "9" "9" "1" "8"
 
-
-
 class AddSingle2 (augend ∷ Symbol) (addend ∷ Symbol) (carryPrevious ∷ Symbol) (carryNext ∷ Symbol) (sum ∷ Symbol) | augend addend carryPrevious → carryNext sum
-, augend carryPrevious sum → addend carryNext 
+, augend carryPrevious sum → addend carryNext
+, addend carryPrevious sum → augend carryNext
 
 instance AddSingle2 "0" "0" "0" "0" "0"
 else instance AddSingle2 "1" "0" "0" "0" "1"
@@ -314,13 +313,11 @@ else instance AddSingle2 "7" "9" "1" "1" "7"
 else instance AddSingle2 "8" "9" "1" "1" "8"
 else instance AddSingle2 "9" "9" "1" "1" "9"
 
-class AddIntermediate (headCarry ∷ Symbol) (headSum ∷ Symbol) (tailCarry ∷ Symbol) (carry :: Symbol)(sum ∷ Symbol) 
-  -- | sum tailCarry → headCarry headSum
-  -- , headSum tailCarry -> headCarry sum
-
-     | headCarry headSum tailCarry -> carry sum
-    , headCarry headSum carry sum -> tailCarry 
-    , tailCarry carry sum -> headCarry headSum 
+class AddIntermediate (headCarry ∷ Symbol) (headSum ∷ Symbol) (tailCarry ∷ Symbol) (carry ∷ Symbol) (sum ∷ Symbol) -- | sum tailCarry → headCarry headSum
+ -- , headSum tailCarry -> headCarry sum
+ | headCarry headSum tailCarry → carry sum
+, headCarry headSum carry sum → tailCarry
+, tailCarry carry sum → headCarry headSum
 instance AddIntermediate "0" "0" "0" "0" "0"
 else instance AddIntermediate "0" "1" "0" "0" "1"
 else instance AddIntermediate "0" "2" "0" "0" "2"
@@ -340,7 +337,6 @@ else instance AddIntermediate "1" "5" "0" "1" "5"
 else instance AddIntermediate "1" "6" "0" "1" "6"
 else instance AddIntermediate "1" "7" "0" "1" "7"
 else instance AddIntermediate "1" "8" "0" "1" "8"
-
 else instance AddIntermediate "0" "0" "1" "0" "1"
 else instance AddIntermediate "0" "1" "1" "0" "2"
 else instance AddIntermediate "0" "2" "1" "0" "3"
@@ -404,39 +400,36 @@ class Add2 (augend ∷ Symbol) (addend ∷ Symbol) (carryPrevious ∷ Symbol) (c
 --   ) ⇒
 --   Add2 augend addend "0" carryNext sum
 -- else 
-
 -- instance
 --   ( AddSingle augend addend carryThru sumThru
 --   , AddIntermediate carryNext sumThru "1" sum
 --   ) ⇒
 --   Add2 augend addend "1" carryNext sum
-
 instance
   ( --AddSingle augend addend carryThru sumThru
-  --, AddIntermediate carryThru sumThru carryPrevious carryNext sum
-  AddSingle2 augend addend carryPrevious carryNext sum 
+    --, AddIntermediate carryThru sumThru carryPrevious carryNext sum
+    AddSingle2 augend addend carryPrevious carryNext sum
   ) ⇒
   Add2 augend addend carryPrevious carryNext sum
 
-
 class AddX (augend ∷ Symbol) (addend ∷ Symbol) (carry ∷ Symbol) (sum ∷ Symbol) | augend addend → carry sum
- , augend sum → addend carry 
+, augend sum → addend carry
+, addend sum → augend carry
 instance AddX "" "" "0" ""
 else instance
   ( Cons augendHead augendTail augend
   , Cons addendHead addendTail addend
   , Cons sumHead sumTail sum
-  , AddX augendTail addendTail carryPrevious sumTail 
+  , AddX augendTail addendTail carryPrevious sumTail
   , AddSingle2 augendHead addendHead carryPrevious carry sumHead
   ) ⇒
   AddX augend addend carry sum
 
-test ∷ ∀ augend addend carry carryPrevious sum. Add2 augend addend carryPrevious carry sum ⇒ Proxy carryPrevious -> Proxy augend → Proxy sum → Proxy addend
+test ∷ ∀ augend addend carry carryPrevious sum. Add2 augend addend carryPrevious carry sum ⇒ Proxy carryPrevious → Proxy augend → Proxy sum → Proxy addend
 test _ _ _ = Proxy
 
-test2 ∷ ∀ augend addend carry carryPrevious sum. Add2 augend addend carryPrevious carry sum ⇒ Proxy carryPrevious -> Proxy augend → Proxy addend → Proxy sum
+test2 ∷ ∀ augend addend carry carryPrevious sum. Add2 augend addend carryPrevious carry sum ⇒ Proxy carryPrevious → Proxy augend → Proxy addend → Proxy sum
 test2 _ _ _ = Proxy
-
 
 test3 ∷ ∀ augend addend carry sum. AddX augend addend carry sum ⇒ Proxy augend → Proxy addend → Proxy sum
 test3 _ _ = Proxy
@@ -444,39 +437,36 @@ test3 _ _ = Proxy
 test4 ∷ ∀ augend addend carry sum. AddX augend addend carry sum ⇒ Proxy augend → Proxy sum → Proxy addend
 test4 _ _ = Proxy
 
-test5 ∷ ∀ augend addend carry sum result. Cons carry sum result => AddX augend addend carry sum ⇒ Proxy augend → Proxy addend → Proxy result
+test5 ∷ ∀ augend addend carry sum result. Cons carry sum result ⇒ AddX augend addend carry sum ⇒ Proxy augend → Proxy addend → Proxy result
 test5 _ _ = Proxy
 
-test6 ∷ ∀ augend addend carry sum result. Cons carry sum result => AddX augend addend carry sum ⇒ Proxy augend → Proxy result → Proxy addend
+test6 ∷ ∀ augend addend carry sum result. Cons carry sum result ⇒ AddX augend addend carry sum ⇒ Proxy augend → Proxy result → Proxy addend
 test6 _ _ = Proxy
 
-test6b ∷ ∀ augend addend carry sum. AddX augend addend carry sum ⇒ Proxy augend → Proxy carry -> Proxy sum → Proxy addend
+test6b ∷ ∀ augend addend carry sum. AddX augend addend carry sum ⇒ Proxy augend → Proxy carry → Proxy sum → Proxy addend
 test6b _ _ _ = Proxy
 
 --x = test (term :: _ "1") (term ∷ _ "5") (term ∷ _ "2")
+y ∷ Proxy "1"
+y = test (term ∷ _ "0") (term ∷ _ "5") (term ∷ _ "6")
 
+z ∷ Proxy "3"
+z = test3 (term ∷ _ "1") (term ∷ _ "2")
 
-y :: Proxy "1"
-y = test (term :: _ "0") (term ∷ _ "5") (term ∷ _ "6")
+zz ∷ Proxy "33"
+zz = test3 (term ∷ Proxy "11") (term ∷ Proxy "22")
 
-z :: Proxy "3"
-z = test3 (term :: _ "1") (term :: _ "2")
+a ∷ Proxy "1"
+a = test4 (term ∷ Proxy "1") (term ∷ Proxy "2")
 
+aa ∷ Proxy "11"
+aa = test4 (term ∷ Proxy "11") (term ∷ Proxy "22")
 
-zz :: Proxy "33"
-zz = test3 (term :: Proxy "11") (term :: Proxy "22")
+bb ∷ Proxy "176"
+bb = test5 (term ∷ Proxy "99") (term ∷ Proxy "77")
 
-a :: Proxy "1"
-a = test4 (term :: Proxy "1") (term :: Proxy "2")
+cc ∷ Proxy "77"
+cc = test6 (term ∷ Proxy "99") (term ∷ Proxy "176")
 
-aa :: Proxy "11"
-aa = test4 (term :: Proxy "11") (term :: Proxy "22")
-
-bb :: Proxy "176"
-bb = test5 (term :: Proxy "99") (term :: Proxy "77")
-
-cc :: Proxy "77"
-cc = test6 (term :: Proxy "99") (term :: Proxy "176")
-
-ccc :: Proxy "77"
-ccc = test6b (term :: Proxy "99") (term :: Proxy "1") (term :: Proxy "76")
+ccc ∷ Proxy "77"
+ccc = test6b (term ∷ Proxy "99") (term ∷ Proxy "1") (term ∷ Proxy "76")
