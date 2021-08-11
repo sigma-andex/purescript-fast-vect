@@ -54,6 +54,3 @@ class ToInt (sym ∷ Symbol) where
 
 instance (ToIntHelper sym) ⇒ ToInt sym where
   toInt = toIntHelper >>> snd
-
-myint ∷ Int
-myint = toInt (Proxy ∷ Proxy "23423423")
