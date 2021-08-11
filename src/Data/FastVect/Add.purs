@@ -220,3 +220,6 @@ else instance
   , AddSingle augendHead addendHead carryPrevious carry sumHead
   ) ⇒
   Add augend addend carry sum
+
+term :: forall t. Proxy t
+term = Proxy
