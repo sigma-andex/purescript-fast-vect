@@ -1,4 +1,10 @@
-module Data.FastVect.FastVect where
+module Data.FastVect.FastVect
+  ( Vect
+  , replicate
+  , append
+  , drop
+  , take
+  ) where
 
 import Prelude
 import Data.Array as A
