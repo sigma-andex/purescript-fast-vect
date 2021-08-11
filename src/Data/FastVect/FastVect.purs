@@ -1,6 +1,7 @@
 module Data.FastVect.FastVect
   ( Vect
   , replicate
+  , empty
   , append
   , drop
   , take
@@ -24,8 +25,11 @@ instance (IsSymbol len, Show elem) ⇒ Show (Vect len elem) where
 instance Functor (Vect len) where
   map f (Vect proxy xs) = Vect proxy (map f xs)
 
-replicate ∷ ∀ len a. ToInt len ⇒ Proxy len → a → Vect len a
+replicate ∷ ∀ len elem. ToInt len ⇒ Proxy len → elem → Vect len elem
 replicate proxy elem = Vect proxy $ A.replicate (toInt proxy) elem
+
+empty ∷ ∀ elem. Vect "0" elem
+empty = Vect (Proxy ∷ Proxy "0") []
 
 append ∷ ∀ m n elem carry sum m_plus_n. Cons carry sum m_plus_n ⇒ Add m n carry sum ⇒ Vect m elem → Vect n elem → Vect m_plus_n elem
 append (Vect _ xs) (Vect _ ys) = Vect (Proxy ∷ Proxy m_plus_n) (xs <> ys)
