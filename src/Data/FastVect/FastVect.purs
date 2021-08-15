@@ -6,13 +6,17 @@ module Data.FastVect.FastVect
   , append
   , drop
   , take
+  , index
+  , head
   ) where
 
 import Prelude
+import Data.Array (unsafeIndex)
 import Data.Array as A
 import Data.FastVect.Add (class Add, class AlignToSum, class Trim, term)
 import Data.FastVect.ToInt (class ToInt, toInt)
 import Data.Symbol (class IsSymbol, reflectSymbol)
+import Partial.Unsafe (unsafePartial)
 import Prim.Symbol (class Cons)
 import Type.Proxy (Proxy)
 
@@ -66,3 +70,22 @@ take ∷
   Add aligned_m n "0" aligned_m_plus_n ⇒
   Proxy m → Vect m_plus_n elem → Vect m elem
 take proxy (Vect _ xs) = Vect proxy (A.take (toInt proxy) xs)
+
+index ∷
+  ∀ m m_minus_one aligned_one aligned_m aligned_m_minus_one i aligned_i n elem.
+  ToInt i ⇒
+  AlignToSum "1" m aligned_one aligned_m ⇒
+  Add aligned_one m_minus_one "0" aligned_m ⇒
+  AlignToSum i m_minus_one aligned_i aligned_m_minus_one ⇒
+  Add aligned_i n "0" aligned_m_minus_one ⇒
+  Proxy i → Vect m elem → elem
+index proxy (Vect _ xs) = unsafePartial $ unsafeIndex xs (toInt proxy)
+
+head ∷
+  ∀ m m_minus_one aligned_one aligned_m aligned_m_minus_one aligned_i n elem.
+  AlignToSum "1" m aligned_one aligned_m ⇒
+  Add aligned_one m_minus_one "0" aligned_m ⇒
+  AlignToSum "0" m_minus_one aligned_i aligned_m_minus_one ⇒
+  Add aligned_i n "0" aligned_m_minus_one ⇒
+  Vect m elem → elem
+head = index (term ∷ _ "0")

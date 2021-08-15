@@ -5,6 +5,7 @@
   , "console"
   , "effect"
   , "integers"
+  , "partial"
   , "prelude"
   , "psci-support"
   , "spec"
