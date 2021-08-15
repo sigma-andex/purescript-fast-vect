@@ -9,8 +9,9 @@ module Data.FastVect.FastVect
   ) where
 
 import Prelude
+
 import Data.Array as A
-import Data.FastVect.Add (class Add, term)
+import Data.FastVect.Add (class Add, class AlignToSum, term)
 import Data.FastVect.ToInt (class ToInt, toInt)
 import Data.Symbol (class IsSymbol, reflectSymbol)
 import Prim.Symbol (class Cons)
@@ -58,9 +59,9 @@ drop ∷
 drop proxy (Vect _ xs) = Vect (term ∷ _ n) (A.drop (toInt proxy) xs)
 
 take ∷
-  ∀ m n elem carry sum m_plus_n.
+  ∀ m n elem m_plus_n aligned_m.
   ToInt m ⇒
-  Cons carry sum m_plus_n ⇒
-  Add m n carry sum ⇒
+  AlignToSum m m_plus_n aligned_m ⇒
+  Add aligned_m n "0" m_plus_n ⇒
   Proxy m → Vect m_plus_n elem → Vect m elem
 take proxy (Vect _ xs) = Vect proxy (A.take (toInt proxy) xs)

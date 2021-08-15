@@ -2,6 +2,7 @@ module Data.FastVect.Add where
 
 import Prim.Symbol (class Cons)
 import Type.Proxy (Proxy(..))
+import Prim.TypeError (class Fail, Text)
 
 class AddSingle (augend ∷ Symbol) (addend ∷ Symbol) (carryPrevious ∷ Symbol) (carryNext ∷ Symbol) (sum ∷ Symbol) | augend addend carryPrevious → carryNext sum
 , augend carryPrevious sum → addend carryNext
@@ -220,6 +221,38 @@ else instance
   , AddSingle augendHead addendHead carryPrevious carry sumHead
   ) ⇒
   Add augend addend carry sum
+class AlignToSumHelper (addendIn :: Symbol) (sumIn :: Symbol) (addendTemp :: Symbol) (sumTemp :: Symbol) (addendOut :: Symbol) | addendIn sumIn addendTemp sumTemp -> addendOut
+
+instance AlignToSumHelper addendIn sumIn "" "" addendIn
+else instance
+  ( Fail (Text "Unable to align addend to sum. Addend is larger than sum.")
+  ) =>
+  AlignToSumHelper addendIn sumIn addendTemp "" addendOut
+else instance
+  ( Cons head tail sumTemp
+  , AlignToSumHelper addendIn sumIn "" tail addendOutPrev
+  , Cons "0" addendOutPrev addendOut
+  ) =>
+  AlignToSumHelper addendIn sumIn "" sumTemp addendOut
+else instance
+  ( Cons addendHead addendTail addendTemp
+  , Cons sumHead sumTail sumTemp
+  , AlignToSumHelper addendIn sumIn addendTail sumTail addendOut
+  ) =>
+  AlignToSumHelper addendIn sumIn addendTemp sumTemp addendOut
+
+class AlignToSum (addendIn :: Symbol) (sumIn :: Symbol) (addendOut :: Symbol) | addendIn sumIn -> addendOut
+instance (AlignToSumHelper addendIn sumIn addendIn sumIn addendOut) => AlignToSum addendIn sumIn addendOut
+
+class TrimHelper (inHead :: Symbol) (inTail :: Symbol) (out :: Symbol) | inHead inTail -> out
+
+instance TrimHelper "0" "" "0"
+else instance (Cons inTailHead inTailTail inTail, TrimHelper inTailHead inTailTail out) => TrimHelper "0" inTail out
+else instance (Cons inHead inTail out) => TrimHelper inHead inTail out
+
+class Trim (inSym :: Symbol) (outSym :: Symbol) | inSym -> outSym
+instance Trim "" ""
+else instance (Cons inHead inTail inSym, TrimHelper inHead inTail outSym) => Trim inSym outSym
 
 term :: forall t. Proxy t
 term = Proxy
