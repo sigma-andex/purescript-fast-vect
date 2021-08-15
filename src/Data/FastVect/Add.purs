@@ -2,7 +2,6 @@ module Data.FastVect.Add where
 
 import Prim.Symbol (class Cons)
 import Type.Proxy (Proxy(..))
-import Prim.TypeError (class Fail, Text)
 
 class AddSingle (augend ∷ Symbol) (addend ∷ Symbol) (carryPrevious ∷ Symbol) (carryNext ∷ Symbol) (sum ∷ Symbol) | augend addend carryPrevious → carryNext sum
 , augend carryPrevious sum → addend carryNext

@@ -56,36 +56,37 @@ append ∷
 append (Vect _ xs) (Vect _ ys) = Vect (term ∷ _ m_plus_n) (xs <> ys)
 
 drop ∷
-  ∀ m n elem carry sum m_plus_n.
+  ∀ m n elem m_aligned m_plus_n_aligned n_untrimmed m_plus_n.
   ToInt m ⇒
-  Cons carry sum m_plus_n ⇒
-  Add m n carry sum ⇒
+  AlignToSum m m_plus_n m_aligned m_plus_n_aligned ⇒
+  Add m_aligned n_untrimmed "0" m_plus_n_aligned ⇒
+  Trim n_untrimmed n ⇒
   Proxy m → Vect m_plus_n elem → Vect n elem
 drop proxy (Vect _ xs) = Vect (term ∷ _ n) (A.drop (toInt proxy) xs)
 
 take ∷
-  ∀ m n elem m_plus_n aligned_m aligned_m_plus_n.
+  ∀ m n elem m_plus_n m_aligned m_aligned_plus_n.
   ToInt m ⇒
-  AlignToSum m m_plus_n aligned_m aligned_m_plus_n ⇒
-  Add aligned_m n "0" aligned_m_plus_n ⇒
+  AlignToSum m m_plus_n m_aligned m_aligned_plus_n ⇒
+  Add m_aligned n "0" m_aligned_plus_n ⇒
   Proxy m → Vect m_plus_n elem → Vect m elem
 take proxy (Vect _ xs) = Vect proxy (A.take (toInt proxy) xs)
 
 index ∷
-  ∀ m m_minus_one aligned_one aligned_m aligned_m_minus_one i aligned_i n elem.
+  ∀ m m_minus_one aligned_one m_aligned m_aligned_minus_one i i_aligned n elem.
   ToInt i ⇒
-  AlignToSum "1" m aligned_one aligned_m ⇒
-  Add aligned_one m_minus_one "0" aligned_m ⇒
-  AlignToSum i m_minus_one aligned_i aligned_m_minus_one ⇒
-  Add aligned_i n "0" aligned_m_minus_one ⇒
+  AlignToSum "1" m aligned_one m_aligned ⇒
+  Add aligned_one m_minus_one "0" m_aligned ⇒
+  AlignToSum i m_minus_one i_aligned m_aligned_minus_one ⇒
+  Add i_aligned n "0" m_aligned_minus_one ⇒
   Proxy i → Vect m elem → elem
 index proxy (Vect _ xs) = unsafePartial $ unsafeIndex xs (toInt proxy)
 
 head ∷
-  ∀ m m_minus_one aligned_one aligned_m aligned_m_minus_one aligned_i n elem.
-  AlignToSum "1" m aligned_one aligned_m ⇒
-  Add aligned_one m_minus_one "0" aligned_m ⇒
-  AlignToSum "0" m_minus_one aligned_i aligned_m_minus_one ⇒
-  Add aligned_i n "0" aligned_m_minus_one ⇒
+  ∀ m m_minus_one aligned_one m_aligned m_aligned_minus_one i_aligned n elem.
+  AlignToSum "1" m aligned_one m_aligned ⇒
+  Add aligned_one m_minus_one "0" m_aligned ⇒
+  AlignToSum "0" m_minus_one i_aligned m_aligned_minus_one ⇒
+  Add i_aligned n "0" m_aligned_minus_one ⇒
   Vect m elem → elem
 head = index (term ∷ _ "0")
