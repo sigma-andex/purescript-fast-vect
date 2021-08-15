@@ -221,28 +221,31 @@ else instance
   , AddSingle augendHead addendHead carryPrevious carry sumHead
   ) ⇒
   Add augend addend carry sum
-class AlignToSumHelper (addendIn :: Symbol) (sumIn :: Symbol) (addendTemp :: Symbol) (sumTemp :: Symbol) (addendOut :: Symbol) | addendIn sumIn addendTemp sumTemp -> addendOut
+class AlignToSumHelper (addendIn :: Symbol) (sumIn :: Symbol) (addendTemp :: Symbol) (sumTemp :: Symbol) (addendOut :: Symbol) (sumOut :: Symbol) |
+   addendIn sumIn addendTemp sumTemp -> addendOut sumOut 
 
-instance AlignToSumHelper addendIn sumIn "" "" addendIn
+instance AlignToSumHelper addendIn sumIn "" "" addendIn sumIn 
 else instance
-  ( Fail (Text "Unable to align addend to sum. Addend is larger than sum.")
-  ) =>
-  AlignToSumHelper addendIn sumIn addendTemp "" addendOut
-else instance
-  ( Cons head tail sumTemp
-  , AlignToSumHelper addendIn sumIn "" tail addendOutPrev
+  ( Cons head tail addendTemp
+  , AlignToSumHelper addendIn sumIn tail "" addendIn addendOutPrev  
   , Cons "0" addendOutPrev addendOut
   ) =>
-  AlignToSumHelper addendIn sumIn "" sumTemp addendOut
+  AlignToSumHelper addendIn sumIn addendTemp "" addendIn addendOut 
+else instance
+  ( Cons head tail sumTemp
+  , AlignToSumHelper addendIn sumIn "" tail addendOutPrev sumIn
+  , Cons "0" addendOutPrev addendOut
+  ) =>
+  AlignToSumHelper addendIn sumIn "" sumTemp addendOut sumIn
 else instance
   ( Cons addendHead addendTail addendTemp
   , Cons sumHead sumTail sumTemp
-  , AlignToSumHelper addendIn sumIn addendTail sumTail addendOut
+  , AlignToSumHelper addendIn sumIn addendTail sumTail addendOut sumOut 
   ) =>
-  AlignToSumHelper addendIn sumIn addendTemp sumTemp addendOut
+  AlignToSumHelper addendIn sumIn addendTemp sumTemp addendOut sumOut
 
-class AlignToSum (addendIn :: Symbol) (sumIn :: Symbol) (addendOut :: Symbol) | addendIn sumIn -> addendOut
-instance (AlignToSumHelper addendIn sumIn addendIn sumIn addendOut) => AlignToSum addendIn sumIn addendOut
+class AlignToSum (addendIn :: Symbol) (sumIn :: Symbol) (addendOut :: Symbol) (sumOut :: Symbol) | addendIn sumIn -> addendOut sumOut
+instance (AlignToSumHelper addendIn sumIn addendIn sumIn addendOut sumOut) => AlignToSum addendIn sumIn addendOut sumOut
 
 class TrimHelper (inHead :: Symbol) (inTail :: Symbol) (out :: Symbol) | inHead inTail -> out
 
