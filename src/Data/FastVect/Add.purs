@@ -220,41 +220,40 @@ else instance
   , AddSingle augendHead addendHead carryPrevious carry sumHead
   ) ⇒
   Add augend addend carry sum
-class PadZeroesHelper (addendIn :: Symbol) (sumIn :: Symbol) (addendTemp :: Symbol) (sumTemp :: Symbol) (addendOut :: Symbol) (sumOut :: Symbol) |
-   addendIn sumIn addendTemp sumTemp -> addendOut sumOut 
+class PadZeroesHelper (leftIn ∷ Symbol) (rightIn ∷ Symbol) (leftTemp ∷ Symbol) (rightTemp ∷ Symbol) (leftOut ∷ Symbol) (rightOut ∷ Symbol) | leftIn rightIn leftTemp rightTemp → leftOut rightOut
 
-instance PadZeroesHelper addendIn sumIn "" "" addendIn sumIn 
+instance PadZeroesHelper leftIn rightIn "" "" leftIn rightIn
 else instance
-  ( Cons head tail addendTemp
-  , PadZeroesHelper addendIn sumIn tail "" addendIn addendOutPrev  
-  , Cons "0" addendOutPrev addendOut
-  ) =>
-  PadZeroesHelper addendIn sumIn addendTemp "" addendIn addendOut 
+  ( Cons head tail leftTemp
+  , PadZeroesHelper leftIn rightIn tail "" leftIn leftOutPrev
+  , Cons "0" leftOutPrev leftOut
+  ) ⇒
+  PadZeroesHelper leftIn rightIn leftTemp "" leftIn leftOut
 else instance
-  ( Cons head tail sumTemp
-  , PadZeroesHelper addendIn sumIn "" tail addendOutPrev sumIn
-  , Cons "0" addendOutPrev addendOut
-  ) =>
-  PadZeroesHelper addendIn sumIn "" sumTemp addendOut sumIn
+  ( Cons head tail rightTemp
+  , PadZeroesHelper leftIn rightIn "" tail leftOutPrev rightIn
+  , Cons "0" leftOutPrev leftOut
+  ) ⇒
+  PadZeroesHelper leftIn rightIn "" rightTemp leftOut rightIn
 else instance
-  ( Cons addendHead addendTail addendTemp
-  , Cons sumHead sumTail sumTemp
-  , PadZeroesHelper addendIn sumIn addendTail sumTail addendOut sumOut 
-  ) =>
-  PadZeroesHelper addendIn sumIn addendTemp sumTemp addendOut sumOut
+  ( Cons leftHead leftTail leftTemp
+  , Cons rightHead rightTail rightTemp
+  , PadZeroesHelper leftIn rightIn leftTail rightTail leftOut rightOut
+  ) ⇒
+  PadZeroesHelper leftIn rightIn leftTemp rightTemp leftOut rightOut
 
-class PadZeroes (addendIn :: Symbol) (sumIn :: Symbol) (addendOut :: Symbol) (sumOut :: Symbol) | addendIn sumIn -> addendOut sumOut
-instance (PadZeroesHelper addendIn sumIn addendIn sumIn addendOut sumOut) => PadZeroes addendIn sumIn addendOut sumOut
+class PadZeroes (leftIn ∷ Symbol) (rightIn ∷ Symbol) (leftOut ∷ Symbol) (rightOut ∷ Symbol) | leftIn rightIn → leftOut rightOut
+instance (PadZeroesHelper leftIn rightIn leftIn rightIn leftOut rightOut) ⇒ PadZeroes leftIn rightIn leftOut rightOut
 
-class TrimHelper (inHead :: Symbol) (inTail :: Symbol) (out :: Symbol) | inHead inTail -> out
+class TrimHelper (inHead ∷ Symbol) (inTail ∷ Symbol) (out ∷ Symbol) | inHead inTail → out
 
 instance TrimHelper "0" "" "0"
-else instance (Cons inTailHead inTailTail inTail, TrimHelper inTailHead inTailTail out) => TrimHelper "0" inTail out
-else instance (Cons inHead inTail out) => TrimHelper inHead inTail out
+else instance (Cons inTailHead inTailTail inTail, TrimHelper inTailHead inTailTail out) ⇒ TrimHelper "0" inTail out
+else instance (Cons inHead inTail out) ⇒ TrimHelper inHead inTail out
 
-class Trim (inSym :: Symbol) (outSym :: Symbol) | inSym -> outSym
+class Trim (input ∷ Symbol) (output ∷ Symbol) | input → output
 instance Trim "" ""
-else instance (Cons inHead inTail inSym, TrimHelper inHead inTail outSym) => Trim inSym outSym
+else instance (Cons inHead inTail input, TrimHelper inHead inTail output) ⇒ Trim input output
 
-term :: forall t. Proxy t
+term ∷ ∀ t. Proxy t
 term = Proxy
