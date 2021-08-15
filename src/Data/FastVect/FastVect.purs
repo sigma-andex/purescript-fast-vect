@@ -9,9 +9,8 @@ module Data.FastVect.FastVect
   ) where
 
 import Prelude
-
 import Data.Array as A
-import Data.FastVect.Add (class Add, class AlignToSum, term)
+import Data.FastVect.Add (class Add, class AlignToSum, class Trim, term)
 import Data.FastVect.ToInt (class ToInt, toInt)
 import Data.Symbol (class IsSymbol, reflectSymbol)
 import Prim.Symbol (class Cons)
@@ -44,9 +43,11 @@ singleton ∷
 singleton elem = Vect (term ∷ _ "1") [ elem ]
 
 append ∷
-  ∀ m n elem carry sum m_plus_n.
-  Cons carry sum m_plus_n ⇒
-  Add m n carry sum ⇒
+  ∀ m n elem carry sum m_plus_n_untrimmed m_plus_n m_aligned n_aligned.
+  AlignToSum m n m_aligned n_aligned ⇒
+  Add m_aligned n_aligned carry sum ⇒
+  Cons carry sum m_plus_n_untrimmed ⇒
+  Trim m_plus_n_untrimmed m_plus_n ⇒
   Vect m elem → Vect n elem → Vect m_plus_n elem
 append (Vect _ xs) (Vect _ ys) = Vect (term ∷ _ m_plus_n) (xs <> ys)
 
@@ -59,9 +60,9 @@ drop ∷
 drop proxy (Vect _ xs) = Vect (term ∷ _ n) (A.drop (toInt proxy) xs)
 
 take ∷
-  ∀ m n elem m_plus_n aligned_m.
+  ∀ m n elem m_plus_n aligned_m aligned_m_plus_n.
   ToInt m ⇒
-  AlignToSum m m_plus_n aligned_m ⇒
-  Add aligned_m n "0" m_plus_n ⇒
+  AlignToSum m m_plus_n aligned_m aligned_m_plus_n ⇒
+  Add aligned_m n "0" aligned_m_plus_n ⇒
   Proxy m → Vect m_plus_n elem → Vect m elem
 take proxy (Vect _ xs) = Vect proxy (A.take (toInt proxy) xs)
