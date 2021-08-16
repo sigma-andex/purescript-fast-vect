@@ -1,6 +1,6 @@
 # purescript-fast-vect 🐆
 
-Fast, type-safe vector libary for purescript. Inspired by [Idris](https://www.idris-lang.org/).
+Fast, type-safe vector libary for Purescript inspired by [Idris](https://www.idris-lang.org/).
 
 ## tl;dr
 
