@@ -1,7 +1,6 @@
 module Data.FastVect.AddSpec where
 
 import Data.FastVect.Add (class Add)
-import Data.FastVect.ToInt (toInt)
 import Prelude (Unit)
 import Prim.Symbol (class Cons)
 import Test.Spec (Spec, describe, it)

@@ -20,13 +20,13 @@ import Partial.Unsafe (unsafePartial)
 import Prim.Symbol (class Cons)
 import Type.Proxy (Proxy)
 
+data Vect ∷ Symbol → Type → Type
 -- | A Vector: A list-like data structure that encodes it's length in the type, backed by an `Array`.
 -- | 
 -- | ```
 -- | vect :: Vect "1" String
 -- | vect = singleton "a"
 -- | ```
-data Vect ∷ Symbol → Type → Type
 data Vect len elem
   = Vect (Proxy len) (Array elem)
 
