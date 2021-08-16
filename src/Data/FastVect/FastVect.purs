@@ -8,13 +8,15 @@ module Data.FastVect.FastVect
   , take
   , index
   , head
+  , fromArray
   ) where
 
 import Prelude
-import Data.Array (unsafeIndex)
+import Data.Array (length, unsafeIndex)
 import Data.Array as A
 import Data.FastVect.Add (class Add, class PadZeroes, class Trim, term)
 import Data.FastVect.ToInt (class ToInt, toInt)
+import Data.Maybe (Maybe(..))
 import Data.Symbol (class IsSymbol, reflectSymbol)
 import Partial.Unsafe (unsafePartial)
 import Prim.Symbol (class Cons)
@@ -32,6 +34,9 @@ data Vect len elem
 
 instance (IsSymbol len, Show elem) ⇒ Show (Vect len elem) where
   show (Vect proxy elems) = "Vect " <> (reflectSymbol proxy) <> " " <> show elems
+
+instance Eq elem ⇒ Eq (Vect len elem) where
+  eq (Vect _ arr1) (Vect _ arr2) = eq arr1 arr2
 
 instance Functor (Vect len) where
   map f (Vect proxy xs) = Vect proxy (map f xs)
@@ -158,3 +163,14 @@ head ∷
   Add i_aligned n "0" m_aligned_minus_one ⇒
   Vect m elem → elem
 head = index (term ∷ _ "0")
+
+-- | Attempt to create a `Vect` of a given size from an `Array`. 
+-- | 
+-- | ```
+-- | fromArray (term :: _ "3") ["a", "b", "c"] = Just (Vect (term :: _ "3") ["a", "b", "c"])
+-- | 
+-- | fromArray (term :: _ "4") ["a", "b", "c"] = Nothing
+-- | ```
+fromArray ∷ ∀ m elem. ToInt m ⇒ Proxy m → Array elem → Maybe (Vect m elem)
+fromArray proxy array | length array == toInt proxy = Just (Vect proxy array)
+fromArray _ _ = Nothing
