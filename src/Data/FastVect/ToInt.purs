@@ -50,6 +50,11 @@ else instance
         Tuple newExp newResult
 
 class ToInt (sym ∷ Symbol) where
+  -- | Converts a `Symbol` representing an Int to an Int 
+  -- | 
+  -- | ```
+  -- | toInt (term :: _ "123") == 123
+  -- | ```
   toInt ∷ Proxy sym → Int
 
 instance (ToIntHelper sym) ⇒ ToInt sym where
