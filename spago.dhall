@@ -3,6 +3,7 @@
   [ "aff"
   , "arrays"
   , "effect"
+  , "maybe"
   , "partial"
   , "prelude"
   , "psci-support"
