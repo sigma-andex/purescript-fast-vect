@@ -1,0 +1,27 @@
+{
+    "name": "purescript-fast-vect",
+    "license": [
+        "MIT-0"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/sigma-andex/purescript-fast-vect.git"
+    },
+    "ignore": [
+        "**/.*",
+        "node_modules",
+        "bower_components",
+        "output"
+    ],
+    "dependencies": {
+        "purescript-aff": "^v6.0.0",
+        "purescript-arrays": "^v6.0.1",
+        "purescript-effect": "^v3.0.0",
+        "purescript-partial": "^v3.0.0",
+        "purescript-prelude": "^v5.0.1",
+        "purescript-psci-support": "^v5.0.0",
+        "purescript-spec": "^v5.0.1",
+        "purescript-spec-discovery": "^v6.0.0",
+        "purescript-tuples": "^v6.0.1"
+    }
+}
