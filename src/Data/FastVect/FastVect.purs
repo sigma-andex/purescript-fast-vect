@@ -9,6 +9,11 @@ module Data.FastVect.FastVect
   , index
   , head
   , fromArray
+  , toArray
+  , adjust
+  , adjustM
+  , cons
+  , (:)
   ) where
 
 import Prelude
@@ -17,6 +22,7 @@ import Data.Array as A
 import Data.FastVect.Add (class Add, class PadZeroes, class Trim, term)
 import Data.FastVect.ToInt (class ToInt, toInt)
 import Data.Maybe (Maybe(..))
+import Data.Ord (abs)
 import Data.Symbol (class IsSymbol, reflectSymbol)
 import Partial.Unsafe (unsafePartial)
 import Prim.Symbol (class Cons)
@@ -171,6 +177,41 @@ head = index (term ∷ _ "0")
 -- | 
 -- | fromArray (term :: _ "4") ["a", "b", "c"] = Nothing
 -- | ```
-fromArray ∷ ∀ m elem. ToInt m ⇒ Proxy m → Array elem → Maybe (Vect m elem)
+fromArray ∷ ∀ len elem. ToInt len ⇒ Proxy len → Array elem → Maybe (Vect len elem)
 fromArray proxy array | length array == toInt proxy = Just (Vect proxy array)
 fromArray _ _ = Nothing
+
+-- | Converts the `Vect` to an `Array`, effectively dropping the size information.
+toArray ∷ ∀ len elem. Vect len elem → Array elem
+toArray (Vect _ arr) = arr
+
+-- | Creates a `Vect` by adjusting the given `Array`, padding with the provided element if the array is to small or dropping elements if the array is to big.
+-- | 
+-- | ```
+-- | toArray $ adjust (term ∷ _ "10") 0 [ 1, 2, 3 ] == [ 0, 0, 0, 0, 0, 0, 0, 1, 2, 3 ]
+-- | 
+-- | toArray $ adjust (term ∷ _ "3") 0 [ 0, 0, 0, 0, 1, 2, 3 ] == [ 1, 2, 3 ]
+-- | ```
+adjust ∷ ∀ len elem. ToInt len ⇒ Proxy len → elem → Array elem → Vect len elem
+adjust proxy elem array = case length array - toInt proxy of
+  0 → Vect proxy array
+  len | len < 0 → Vect proxy $ A.replicate (abs len) elem <> array
+  len → Vect proxy $ A.drop len array
+
+-- | Like `adjust` but uses the Moinoid instance of elem to create the elements.
+adjustM ∷ ∀ len elem. Monoid elem ⇒ ToInt len ⇒ Proxy len → Array elem → Vect len elem
+adjustM proxy = adjust proxy mempty
+
+-- | Attaches an element to the front of the `Vect`, creating a new `Vect` with size incremented. 
+-- | 
+-- | Note, the running time of this function is `O(n)`.
+cons ∷
+  ∀ len elem one_aligned len_aligned carry sum len_plus_1_untrimmed len_plus_1.
+  PadZeroes "1" len one_aligned len_aligned ⇒
+  Add one_aligned len carry sum ⇒
+  Cons carry sum len_plus_1_untrimmed ⇒
+  Trim len_plus_1_untrimmed len_plus_1 ⇒
+  elem → Vect len elem → Vect len_plus_1 elem
+cons elem (Vect _ arr) = Vect (term ∷ _ len_plus_1) (A.cons elem arr)
+
+infixr 6 cons as :
