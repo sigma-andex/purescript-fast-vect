@@ -8,6 +8,7 @@ module Data.FastVect.FastVect
   , take
   , index
   , head
+  , splitAt
   , fromArray
   , toArray
   , adjust
@@ -17,6 +18,7 @@ module Data.FastVect.FastVect
   ) where
 
 import Prelude
+
 import Data.Array (length, unsafeIndex)
 import Data.Array as A
 import Data.FastVect.Add (class Add, class PadZeroes, class Trim, term)
@@ -133,7 +135,30 @@ take ∷
   Proxy m → Vect m_plus_n elem → Vect m elem
 take proxy (Vect _ xs) = Vect proxy (A.take (toInt proxy) xs)
 
--- | Access the `i`-th element of a `Vect`.
+-- | Split the `Vect` into two sub vectors `before` and `after`, where before contains up to `m` elements.
+-- | 
+-- | ```
+-- | vect ∷ Vect "10" String
+-- | vect = replicate (term ∷ _ "10") "a"
+-- | 
+-- | split ∷
+-- |   { after ∷ Vect "7" String
+-- |   , before ∷ Vect "3" String
+-- |   }
+-- | split = splitAt (term ∷ _ "3") vect
+-- | ```
+splitAt ∷
+  ∀ m n elem m_aligned m_plus_n_aligned n_untrimmed m_plus_n.
+  ToInt m ⇒
+  PadZeroes m m_plus_n m_aligned m_plus_n_aligned ⇒
+  Add m_aligned n_untrimmed "0" m_plus_n_aligned ⇒
+  Trim n_untrimmed n ⇒
+  Proxy m → Vect m_plus_n elem → { before :: Vect m elem, after :: Vect n elem }
+splitAt proxy (Vect _ xs) = { before: Vect proxy before, after: Vect (term ∷ _ n) after }
+    where 
+        { before, after} = A.splitAt (toInt proxy) xs
+
+-- | Safely access the `i`-th element of a `Vect`.
 -- | 
 -- | ```
 -- | vect :: Vect "300" String
@@ -152,7 +177,7 @@ index ∷
   Proxy i → Vect m elem → elem
 index proxy (Vect _ xs) = unsafePartial $ unsafeIndex xs (toInt proxy)
 
--- | Access the head of a `Vect`.
+-- | Safely access the head of a `Vect`.
 -- | 
 -- | ```
 -- | vect :: Vect "300" String
