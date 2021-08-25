@@ -18,13 +18,15 @@ module Data.FastVect.FastVect
   ) where
 
 import Prelude
-
 import Data.Array (length, unsafeIndex)
 import Data.Array as A
 import Data.FastVect.Add (class Add, class PadZeroes, class Trim, term)
 import Data.FastVect.ToInt (class ToInt, toInt)
+import Data.Foldable (class Foldable)
+import Data.Foldable as Foldable
 import Data.Maybe (Maybe(..))
 import Data.Ord (abs)
+import Data.Semigroup.Foldable (class Foldable1, foldMap1DefaultL)
 import Data.Symbol (class IsSymbol, reflectSymbol)
 import Partial.Unsafe (unsafePartial)
 import Prim.Symbol (class Cons)
@@ -48,6 +50,29 @@ instance Eq elem ⇒ Eq (Vect len elem) where
 
 instance Functor (Vect len) where
   map f (Vect proxy xs) = Vect proxy (map f xs)
+
+instance Foldable (Vect len) where
+  foldr f z (Vect _ xs) = Foldable.foldr f z xs
+  foldl f z (Vect _ xs) = Foldable.foldl f z xs
+  foldMap f (Vect _ xs) = Foldable.foldMap f xs
+
+instance
+  ( PadZeroes "1" m aligned_one m_aligned
+  , Add aligned_one m_minus_one "0" m_aligned
+  , PadZeroes "0" m_minus_one i_aligned m_aligned_minus_one
+  , Add i_aligned n "0" m_aligned_minus_one
+  , Trim m_minus_one m_minus_one_trimmed
+  , Foldable (Vect m)
+
+
+  ) ⇒
+  Foldable1 (Vect m) where
+  foldr1 f vect = Foldable.foldr f zero rest
+    where 
+        zero = index (term :: _ m_minus_one) vect 
+        rest = take (term :: _ m_minus_one) vect
+  foldl1 f vect = Foldable.foldl f (head vect) $ drop (term ∷ _ "1") vect
+  foldMap1 = foldMap1DefaultL
 
 -- | Create a `Vect` by replicating `len` times the given element 
 -- | 
@@ -153,10 +178,10 @@ splitAt ∷
   PadZeroes m m_plus_n m_aligned m_plus_n_aligned ⇒
   Add m_aligned n_untrimmed "0" m_plus_n_aligned ⇒
   Trim n_untrimmed n ⇒
-  Proxy m → Vect m_plus_n elem → { before :: Vect m elem, after :: Vect n elem }
+  Proxy m → Vect m_plus_n elem → { before ∷ Vect m elem, after ∷ Vect n elem }
 splitAt proxy (Vect _ xs) = { before: Vect proxy before, after: Vect (term ∷ _ n) after }
-    where 
-        { before, after} = A.splitAt (toInt proxy) xs
+  where
+  { before, after } = A.splitAt (toInt proxy) xs
 
 -- | Safely access the `i`-th element of a `Vect`.
 -- | 
@@ -194,6 +219,13 @@ head ∷
   Add i_aligned n "0" m_aligned_minus_one ⇒
   Vect m elem → elem
 head = index (term ∷ _ "0")
+
+last :: ∀ m m_minus_one aligned_one m_aligned m_aligned_minus_one m_minus_two aligned_two  i i_aligned m_aligned_minus_two aligned_one_snd n elem.
+  ToInt aligned_two ⇒
+  PadZeroes "2" m aligned_two m_aligned ⇒
+  Add aligned_two m_minus_two "0" m_aligned ⇒
+  Vect m elem → elem
+last = index (term :: _ m_minus_two)
 
 -- | Attempt to create a `Vect` of a given size from an `Array`. 
 -- | 

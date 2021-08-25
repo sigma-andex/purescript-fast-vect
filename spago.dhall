@@ -3,6 +3,7 @@
   [ "aff"
   , "arrays"
   , "effect"
+  , "foldable-traversable"
   , "maybe"
   , "partial"
   , "prelude"
