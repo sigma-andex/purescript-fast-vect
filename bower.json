@@ -23,6 +23,6 @@
         "purescript-psci-support": "^v5.0.0",
         "purescript-spec": "^v5.0.1",
         "purescript-spec-discovery": "^v6.0.0",
-        "purescript-tuples": "^v6.0.1"
+        "purescript-typelevel-arithmetic": "https://github.com/sigma-andex/purescript-typelevel-arithmetic.git#v0.1.0"
     }
 }
