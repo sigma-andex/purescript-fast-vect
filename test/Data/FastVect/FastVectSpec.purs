@@ -1,7 +1,7 @@
 module Data.FastVect.FastVectSpec where
 
 import Data.FastVect.FastVect
-import Data.FastVect.Add (term)
+import Typelevel.Arithmetic.Add (term)
 import Data.Maybe (Maybe(..))
 import Prelude (Unit, discard)
 import Test.Spec (Spec, describe, it)

@@ -9,7 +9,7 @@
   , "psci-support"
   , "spec"
   , "spec-discovery"
-  , "tuples"
+  , "typelevel-arithmetic"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]

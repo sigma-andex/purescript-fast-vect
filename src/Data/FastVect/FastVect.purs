@@ -18,11 +18,10 @@ module Data.FastVect.FastVect
   ) where
 
 import Prelude
-
 import Data.Array (length, unsafeIndex)
 import Data.Array as A
-import Data.FastVect.Add (class Add, class PadZeroes, class Trim, term)
-import Data.FastVect.ToInt (class ToInt, toInt)
+import Typelevel.Arithmetic.Add (class Add, class PadZeroes, class Trim, term)
+import Typelevel.Arithmetic.ToInt (class ToInt, toInt)
 import Data.Maybe (Maybe(..))
 import Data.Ord (abs)
 import Data.Symbol (class IsSymbol, reflectSymbol)
@@ -153,10 +152,10 @@ splitAt ∷
   PadZeroes m m_plus_n m_aligned m_plus_n_aligned ⇒
   Add m_aligned n_untrimmed "0" m_plus_n_aligned ⇒
   Trim n_untrimmed n ⇒
-  Proxy m → Vect m_plus_n elem → { before :: Vect m elem, after :: Vect n elem }
+  Proxy m → Vect m_plus_n elem → { before ∷ Vect m elem, after ∷ Vect n elem }
 splitAt proxy (Vect _ xs) = { before: Vect proxy before, after: Vect (term ∷ _ n) after }
-    where 
-        { before, after} = A.splitAt (toInt proxy) xs
+  where
+  { before, after } = A.splitAt (toInt proxy) xs
 
 -- | Safely access the `i`-th element of a `Vect`.
 -- | 
