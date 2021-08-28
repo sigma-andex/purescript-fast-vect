@@ -55,6 +55,7 @@ Furhter functions that are defined differently to the `Array` functions are:
 * `take` is guaranteed to return you a vector with the number of elements requested and result in a compile-time error if you are trying to request more elements than are in the vector. 
 * `drop` is guaranteed to drop the exact number of elements from the vector and result in a compile-time error if you are trying to drop more elements than exist in the vector.
 
+You can find the full api on [pursuit](https://pursuit.purescript.org/packages/purescript-fast-vect/0.3.0/docs/Data.FastVect.FastVect). 
 
 ### Example usage 
 
@@ -93,4 +94,5 @@ big2 = FV.replicate (term :: Term "203948023984590684596840586") "b"
 
 big :: Vect "203948047908088915095071006" String
 big = FV.append big1 big2
+-- Note the big example will blow up during runtime.
 ```

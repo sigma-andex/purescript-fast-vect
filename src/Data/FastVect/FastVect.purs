@@ -61,6 +61,11 @@ replicate ∷
 replicate proxy elem = Vect proxy $ A.replicate (toInt proxy) elem
 
 -- | Creates the empty `Vect`.
+-- | 
+-- | ```
+-- | vect :: Vect "0" String
+-- | vect = empty
+-- | ```
 empty ∷
   ∀ elem.
   Vect "0" elem
@@ -98,7 +103,8 @@ append ∷
   Vect m elem → Vect n elem → Vect m_plus_n elem
 append (Vect _ xs) (Vect _ ys) = Vect (term ∷ _ m_plus_n) (xs <> ys)
 
--- | Drop `m` elements from a `Vect`.
+-- | Safely drop `m` elements from a `Vect`. 
+-- | Will result in a compile-time error if you are trying to drop more elements than exist in the vector.
 -- | 
 -- | ```
 -- | vect :: Vect "300" String
@@ -116,7 +122,8 @@ drop ∷
   Proxy m → Vect m_plus_n elem → Vect n elem
 drop proxy (Vect _ xs) = Vect (term ∷ _ n) (A.drop (toInt proxy) xs)
 
--- | Take `m` elements from a `Vect`.
+-- | Safely take `m` elements from a `Vect`.
+-- | Will result in a compile-time error if you are trying to take more elements than exist in the vector.
 -- | 
 -- | ```
 -- | vect :: Vect "300" String
