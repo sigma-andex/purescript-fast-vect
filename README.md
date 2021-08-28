@@ -37,7 +37,7 @@ This leads to a slightly different design of the api. E.g. the `head` function i
 ```purescript
 head :: forall a. Array a -> Maybe a
 ```
-So if you call head on an array, you have to handle the maybe. 
+So if you call head on an `Array`, you have to handle the `Maybe`. 
 In contrast, `head` in `Data.FastVect` has the following type signature (conceptually, the real one is slightly more complex) :
 ```purescript
 head :: forall elem. Vect m elem -> elem
