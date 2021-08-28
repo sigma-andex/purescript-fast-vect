@@ -15,7 +15,7 @@ spago install fast-vect
 
 ## Long story
 
-A vector is a list (or an Array in the case of Purescript) that has it's size encoded in it's type. For instance in Idris you can define a vector like this:
+A vector is a list (or an Array in the case of Purescript) that has its size encoded in it's type. For instance in Idris you can define a vector like this:
 
 ```idris 
 vect : Vect 3 Int 
@@ -38,13 +38,13 @@ This leads to a slightly different design of the api. E.g. the `head` function i
 head :: forall a. Array a -> Maybe a
 ```
 So if you call head on an `Array`, you have to handle the `Maybe`. 
-In contrast, `head` in `Data.FastVect` has the following type signature (conceptually, the real one is slightly more complex) :
+In contrast, `head` in `Data.FastVect` has the following type signature (conceptually - the real one is slightly more complex) :
 ```purescript
 head :: forall elem. Vect m elem -> elem
 ```
 You will get an `elem` back, no need to handle a `Maybe`. And this operation is always safe, because in the case that the vector is empty you will get a compile-time error. 
 
-Similarly, the `index` function has the following type signature (conceptually, the real one is slightly more complex):
+Similarly, the `index` function has the following type signature (conceptually - the real one is slightly more complex):
 ```purescript
 index :: forall i elem. Term i -> Vect m elem -> elem
 ```
