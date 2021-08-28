@@ -3,7 +3,7 @@
 Fast, type-safe vector libary for Purescript inspired by [Idris](https://www.idris-lang.org/).
 
 ## tl;dr
-*Video not working on pursuit, check it out on [github](https://github.com/sigma-andex/purescript-fast-vect).*
+*Video below not working on pursuit, check it out on [github](https://github.com/sigma-andex/purescript-fast-vect).*
 
 https://user-images.githubusercontent.com/77549848/129489569-6ba0ef67-6bd1-477e-9a76-2577c7bfe4f8.mp4
 
