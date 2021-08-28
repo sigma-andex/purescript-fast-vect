@@ -40,15 +40,15 @@ head :: forall a. Array a -> Maybe a
 So if you call head on an `Array`, you have to handle the `Maybe`. 
 In contrast, `head` in `Data.FastVect` has the following type signature (conceptually - the real one is slightly more complex) :
 ```purescript
-head :: forall elem. Vect m elem -> elem
+head :: forall m elem. Vect m elem -> elem
 ```
 You will get an `elem` back, no need to handle a `Maybe`. And this operation is always safe, because in the case that the vector is empty you will get a compile-time error. 
 
 Similarly, the `index` function has the following type signature (conceptually - the real one is slightly more complex):
 ```purescript
-index :: forall i elem. Term i -> Vect m elem -> elem
+index :: forall i m elem. Term i -> Vect m elem -> elem
 ```
-If the index `i` (represented as a typelevel symbol) is in bounds, you will get an `elem` back, otherwise you will get a compile-time error. 
+If the index `i` (represented as a typelevel symbol) is in bounds, i.e. `i < m`, you will get an `elem` back, otherwise you will get a compile-time error. 
 
 Furhter functions that are defined differently to the `Array` functions are:
 
