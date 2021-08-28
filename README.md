@@ -52,7 +52,7 @@ If the index `i` (represented as a typelevel symbol) is in bounds, you will get 
 
 Furhter functions that are defined differently to the `Array` functions are:
 
-* `take` is guaranteed to return you a vector with the number of elements requested and result in a compile-time error if you are trying to take request more elements than are in the vector. 
+* `take` is guaranteed to return you a vector with the number of elements requested and result in a compile-time error if you are trying to request more elements than are in the vector. 
 * `drop` is guaranteed to drop the exact number of elements from the vector and result in a compile-time error if you are trying to drop more elements than exist in the vector.
 
 
