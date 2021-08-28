@@ -60,33 +60,36 @@ Furhter functions that are defined differently to the `Array` functions are:
 
 ```purescript
 import Prelude
-import Data.FastVect.FastVect as FV
+
 import Data.FastVect.FastVect (Vect)
-import Typelevel.Arithmetic.Add (term)
+import Data.FastVect.FastVect as FV
+import Typelevel.Arithmetic.Add (Term, term)
 
 as :: Vect "300" String
-as = FV.replicate (term :: _ "300") "a"
+as = FV.replicate (term :: Term "300") "a"
+-- Note you could also leave out the Term type annotation, as PS can infer it:
+-- as = FV.replicate (term :: _ "300") "a"
 
 bs :: Vect "200" String
-bs = FV.replicate (term :: _ "200") "b"
+bs = FV.replicate (term :: Term "200") "b"
 
 cs :: Vect "500" String
 cs = FV.append as bs
 
 ds :: Vect "2" String
-ds = cs # FV.drop (term :: _ "299") # FV.take (term :: _ "2")
+ds = cs # FV.drop (term :: Term "299") # FV.take (term :: Term "2")
 
 x :: String
-x = FV.index (term :: _ "499") cs
+x = FV.index (term :: Term "499") cs
 
 y :: String
 y = FV.head (FV.singleton "a")
 
 big1 :: Vect "23923498230498230420" String
-big1 = FV.replicate (term :: _ "23923498230498230420") "a"
+big1 = FV.replicate (term :: Term "23923498230498230420") "a"
 
 big2 :: Vect "203948023984590684596840586" String
-big2 = FV.replicate (term :: _ "203948023984590684596840586") "b"
+big2 = FV.replicate (term :: Term "203948023984590684596840586") "b"
 
 big :: Vect "203948047908088915095071006" String
 big = FV.append big1 big2
