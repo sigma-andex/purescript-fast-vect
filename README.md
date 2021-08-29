@@ -1,6 +1,6 @@
 # purescript-fast-vect 🐆
 
-Fast, type-safe vector libary for Purescript inspired by [Idris](https://www.idris-lang.org/).
+Fast, type-safe vector libary for Purescript inspired by [Idris](https://www.idris-lang.org/). A vector is list with its size encoded in the type.
 
 ## tl;dr
 *Video below not working on pursuit, check it out on [github](https://github.com/sigma-andex/purescript-fast-vect).*
@@ -15,7 +15,7 @@ spago install fast-vect
 
 ## Long story
 
-A vector is a list (or an Array in the case of Purescript) that has its size encoded in it's type. For instance in Idris you can define a vector like this:
+A vector is a list (or an Array in the case of Purescript) that has its size encoded in the type. For instance in Idris you can define a vector like this:
 
 ```idris 
 vect : Vect 3 Int 
