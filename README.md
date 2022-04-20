@@ -2,11 +2,6 @@
 
 Fast, type-safe vector libary for Purescript inspired by [Idris](https://www.idris-lang.org/). A vector is list with its size encoded in the type.
 
-## tl;dr
-*Video below not working on pursuit, check it out on [github](https://github.com/sigma-andex/purescript-fast-vect).*
-
-https://user-images.githubusercontent.com/77549848/129489569-6ba0ef67-6bd1-477e-9a76-2577c7bfe4f8.mp4
-
 ## Installation
 
 ```bash
@@ -22,12 +17,12 @@ vect : Vect 3 Int
 vect = [1,2,3]
 ```
 
-Note the value `3` in the type position, indicating that the vector has exactly three elements. This is possible because Idris supports dependent types. Unfortunately, Purescript does not have dependent types. So we have to fake it using symbols, which are basically typelevel strings. 
+Note the value `3` in the type position, indicating that the vector has exactly three elements.
 
 In `purescript-fast-vect` we can define the same three element vector like this:
 
 ```purescript 
-vect :: Vect "3" Int
+vect :: Vect 3 Int
 vect = 1 : 2 : 3 : empty
 ```
 
@@ -55,7 +50,7 @@ Furhter functions that are defined differently to the `Array` functions are:
 * `take` is guaranteed to return you a vector with the number of elements requested and result in a compile-time error if you are trying to request more elements than are in the vector. 
 * `drop` is guaranteed to drop the exact number of elements from the vector and result in a compile-time error if you are trying to drop more elements than exist in the vector.
 
-You can find the full api on [pursuit](https://pursuit.purescript.org/packages/purescript-fast-vect/0.3.0/docs/Data.FastVect.FastVect). 
+You can find the full api on [pursuit](https://pursuit.purescript.org/packages/purescript-fast-vect/latest/docs/Data.FastVect.FastVect). 
 
 ### Example usage 
 
@@ -66,33 +61,33 @@ import Data.FastVect.FastVect (Vect)
 import Data.FastVect.FastVect as FV
 import Typelevel.Arithmetic.Add (Term, term)
 
-as :: Vect "300" String
-as = FV.replicate (term :: Term "300") "a"
+as :: Vect 300 String
+as = FV.replicate (term :: Term 300) "a"
 -- Note you could also leave out the Term type annotation, as PS can infer it:
--- as = FV.replicate (term :: _ "300") "a"
+-- as = FV.replicate (term :: _ 300) "a"
 
-bs :: Vect "200" String
-bs = FV.replicate (term :: Term "200") "b"
+bs :: Vect 200 String
+bs = FV.replicate (term :: Term 200) "b"
 
-cs :: Vect "500" String
+cs :: Vect 500 String
 cs = FV.append as bs
 
-ds :: Vect "2" String
-ds = cs # FV.drop (term :: Term "299") # FV.take (term :: Term "2")
+ds :: Vect 2 String
+ds = cs # FV.drop (term :: Term 299) # FV.take (term :: Term 2)
 
 x :: String
-x = FV.index (term :: Term "499") cs
+x = FV.index (term :: Term 499) cs
 
 y :: String
 y = FV.head (FV.singleton "a")
 
-big1 :: Vect "23923498230498230420" String
-big1 = FV.replicate (term :: Term "23923498230498230420") "a"
+big1 :: Vect 23923498230498230420 String
+big1 = FV.replicate (term :: Term 23923498230498230420) "a"
 
-big2 :: Vect "203948023984590684596840586" String
-big2 = FV.replicate (term :: Term "203948023984590684596840586") "b"
+big2 :: Vect 203948023984590684596840586 String
+big2 = FV.replicate (term :: Term 203948023984590684596840586) "b"
 
-big :: Vect "203948047908088915095071006" String
+big :: Vect 203948047908088915095071006 String
 big = FV.append big1 big2
 -- Note the big example will blow up during runtime.
 ```
