@@ -6,7 +6,6 @@
   , "maybe"
   , "partial"
   , "prelude"
-  , "psci-support"
   , "spec"
   , "spec-discovery"
   , "typelevel-arithmetic"
