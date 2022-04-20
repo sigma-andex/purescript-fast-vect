@@ -3,9 +3,9 @@ module Data.FastVect.FastVectSpec where
 import Data.FastVect.FastVect
 
 import Data.Maybe (Maybe(..))
-import Prelude (Unit, discard, pure, unit, ($))
+import Prelude (Unit, discard, pure, unit)
 import Test.Spec (Spec, describe, it)
-import Test.Spec.Assertions (expectError, shouldEqual)
+import Test.Spec.Assertions (shouldEqual)
 
 spec ∷ Spec Unit
 spec =
@@ -62,4 +62,3 @@ spec =
         (toArray actualDrop) `shouldEqual` expectedDrop
         (toArray actualEqual) `shouldEqual` expectedEqual
         (toArray actualPadM) `shouldEqual` expectedPadM
-
