@@ -3,7 +3,7 @@ module Data.FastVect.FastVectSpec where
 import Data.FastVect.FastVect
 
 import Data.Maybe (Maybe(..))
-import Prelude (Unit, discard, pure, ($))
+import Prelude (Unit, discard, pure, unit, ($))
 import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (expectError, shouldEqual)
 
@@ -41,8 +41,8 @@ spec =
 
         (take (term :: _ 4) vect) `shouldEqual` vect
         (take (term :: _ 3) vect) `shouldEqual` (1 : 2 : 3 : empty)
-        --(take (term :: _ 5) vect) `shouldEqual` (1 : 2 : 3 : empty)
-
+        --let _ = (take (term :: _ 5) vect) -- should not compile
+        pure unit
       it "should adjust an Array to a Vect" do
         let
           expectedPad = [ 0, 0, 0, 0, 0, 0, 0, 1, 2, 3 ]

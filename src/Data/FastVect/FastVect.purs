@@ -30,7 +30,7 @@ import Data.Ord (abs)
 import Data.Reflectable (class Reflectable, reflectType)
 import Partial.Unsafe (unsafePartial)
 import Prim.Int (class Add, class Compare)
-import Prim.Ordering (EQ, GT, LT)
+import Prim.Ordering (GT)
 import Type.Proxy (Proxy(..))
 
 term :: forall (i :: Int). Proxy i
@@ -39,24 +39,24 @@ term = Proxy
 toInt :: forall (len :: Int). Reflectable len Int => Proxy len -> Int
 toInt = reflectType
 
-data Vect ∷ Int → Type → Type
+newtype Vect ∷ Int → Type → Type
 -- | A Vector: A list-like data structure that encodes it's length in the type, backed by an `Array`.
 -- | 
 -- | ```
 -- | vect :: Vect 1 String
 -- | vect = singleton "a"
 -- | ```
-data Vect len elem
-  = Vect (Proxy len) (Array elem)
+newtype Vect len elem
+  = Vect (Array elem)
 
 instance (Show elem, Reflectable len Int) ⇒ Show (Vect len elem) where
-  show (Vect proxy elems) = "Vect " <> show (toInt proxy) <> " " <> show elems
+  show (Vect elems) = "Vect " <> show (toInt (term :: _ len)) <> " " <> show elems
 
 instance Eq elem ⇒ Eq (Vect len elem) where
-  eq (Vect _ arr1) (Vect _ arr2) = eq arr1 arr2
+  eq (Vect arr1) (Vect arr2) = eq arr1 arr2
 
 instance Functor (Vect len) where
-  map f (Vect proxy xs) = Vect proxy (map f xs)
+  map f (Vect xs) = Vect (map f xs)
 
 
 -- -- | Create a `Vect` by replicating `len` times the given element 
@@ -69,7 +69,7 @@ replicate ∷
   ∀ len elem.
   Compare len (-1) GT => 
   Reflectable len Int => Proxy len → elem → Vect len elem
-replicate proxy elem = Vect proxy $ A.replicate (toInt proxy) elem
+replicate proxy elem = Vect $ A.replicate (toInt proxy) elem
 
 
 -- -- | Creates the empty `Vect`.
@@ -81,7 +81,7 @@ replicate proxy elem = Vect proxy $ A.replicate (toInt proxy) elem
 empty ∷
   ∀ elem.
   Vect 0 elem
-empty = Vect (term ∷ _ 0) []
+empty = Vect []
 
 -- -- | Create a `Vect` of one element.
 -- -- | 
@@ -92,7 +92,7 @@ empty = Vect (term ∷ _ 0) []
 singleton ∷
   ∀ elem.
   elem → Vect 1 elem
-singleton elem = Vect (term ∷ _ 1) [ elem ]
+singleton elem = Vect [ elem ]
 
 -- -- | Append two `Vect`s.
 -- -- | 
@@ -112,7 +112,7 @@ append ∷
   Compare m (-1) GT => 
   Compare n (-1) GT => 
   Vect m elem → Vect n elem → Vect m_plus_n elem
-append (Vect _ xs) (Vect _ ys) = Vect (Proxy ∷ _ m_plus_n) (xs <> ys)
+append (Vect xs) (Vect ys) = Vect (xs <> ys)
 
 -- -- | Safely drop `m` elements from a `Vect`. 
 -- -- | Will result in a compile-time error if you are trying to drop more elements than exist in the vector.
@@ -129,8 +129,9 @@ drop ∷
   Add m n m_plus_n ⇒
   Reflectable m Int => 
   Compare m (-1) GT => 
+  Compare n (-1) GT => 
   Proxy m → Vect m_plus_n elem → Vect n elem
-drop proxy (Vect _ xs) = Vect (term ∷ _ n) (A.drop (toInt proxy) xs)
+drop proxy (Vect xs) = Vect (A.drop (toInt proxy) xs)
 
 -- -- | Safely take `m` elements from a `Vect`.
 -- -- | Will result in a compile-time error if you are trying to take more elements than exist in the vector.
@@ -147,8 +148,9 @@ take ∷
   Add m n m_plus_n ⇒
   Reflectable m Int => 
   Compare m (-1) GT => 
+  Compare n (-1) GT => 
   Proxy m → Vect m_plus_n elem → Vect m elem
-take proxy (Vect _ xs) = Vect proxy (A.take (toInt proxy) xs)
+take proxy (Vect xs) = Vect (A.take (toInt proxy) xs)
 
 -- -- | Split the `Vect` into two sub vectors `before` and `after`, where before contains up to `m` elements.
 -- -- | 
@@ -169,7 +171,7 @@ splitAt ∷
   Compare m (-1) GT => 
   Compare n (-1) GT => 
   Proxy m → Vect m_plus_n elem → { before ∷ Vect m elem, after ∷ Vect n elem }
-splitAt proxy (Vect _ xs) = { before: Vect proxy before, after: Vect (term ∷ _ n) after }
+splitAt proxy (Vect xs) = { before: Vect before, after: Vect after }
   where
   { before, after } = A.splitAt (toInt proxy) xs
 
@@ -191,7 +193,7 @@ index ∷
   Compare i (-1) GT => 
   Reflectable i Int => 
   Proxy i → Vect m elem → elem
-index proxy (Vect _ xs) = unsafePartial $ unsafeIndex xs (toInt proxy)
+index proxy (Vect xs) = unsafePartial $ unsafeIndex xs (toInt proxy)
 
 -- -- | Safely access the head of a `Vect`.
 -- -- | 
@@ -224,14 +226,14 @@ fromArray ∷ ∀ len elem.
   Proxy len → 
   Array elem → 
   Maybe (Vect len elem)
-fromArray proxy array | Array.length array == toInt proxy = Just (Vect proxy array)
+fromArray proxy array | Array.length array == toInt proxy = Just (Vect array)
 fromArray _ _ = Nothing
 
 -- -- | Converts the `Vect` to an `Array`, effectively dropping the size information.
 toArray ∷ ∀ len elem. 
   Compare len (-1) GT => 
   Vect len elem → Array elem
-toArray (Vect _ arr) = arr
+toArray (Vect arr) = arr
 
 -- -- | Creates a `Vect` by adjusting the given `Array`, padding with the provided element if the array is to small or dropping elements if the array is to big.
 -- -- | 
@@ -248,9 +250,9 @@ adjust ∷ ∀ len elem.
   Array elem → 
   Vect len elem
 adjust proxy elem array = case Array.length array - toInt proxy of
-  0 → Vect proxy array
-  len | len < 0 → Vect proxy $ A.replicate (abs len) elem <> array
-  len → Vect proxy $ A.drop len array
+  0 → Vect array
+  len | len < 0 → Vect $ A.replicate (abs len) elem <> array
+  len → Vect $ A.drop len array
 
 -- -- | Like `adjust` but uses the Moinoid instance of elem to create the elements.
 adjustM ∷ ∀ len elem. 
@@ -270,6 +272,6 @@ cons ∷
   Add 1 len len_plus_1 ⇒
   Compare len (-1) GT => 
   elem → Vect len elem → Vect len_plus_1 elem
-cons elem (Vect _ arr) = Vect (term ∷ _ len_plus_1) (A.cons elem arr)
+cons elem (Vect arr) = Vect (A.cons elem arr)
 
 infixr 6 cons as :
