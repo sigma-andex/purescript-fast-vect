@@ -24,7 +24,6 @@ module Data.FastVect.FastVect
 
 import Prelude
 
-import Data.Array (unsafeIndex)
 import Data.Array as A
 import Data.Array as Array
 import Data.Foldable (class Foldable)
@@ -35,7 +34,6 @@ import Data.Ord (abs)
 import Data.Reflectable (class Reflectable, reflectType)
 import Data.Traversable (class Traversable)
 import Data.TraversableWithIndex (class TraversableWithIndex)
-import Partial.Unsafe (unsafePartial)
 import Prim.Int (class Add, class Compare)
 import Prim.Ordering (GT)
 import Type.Proxy (Proxy(..))
@@ -202,7 +200,9 @@ indexModulo ∷
   Compare m 0 GT ⇒
   Reflectable m Int ⇒
   Int → Vect m elem → elem
-indexModulo i (Vect xs) = unsafePartial $ unsafeIndex xs (i `mod` toInt (Proxy ∷ _ m))
+indexModulo i = indexImpl (i `mod` toInt (Proxy ∷ _ m))
+
+foreign import indexImpl :: forall m elem. Int → Vect m elem → elem
 
 -- -- | Safely access the `i`-th element of a `Vect`.
 -- -- |
@@ -222,7 +222,7 @@ index ∷
   Compare i (-1) GT ⇒
   Reflectable i Int ⇒
   Proxy i → Vect m elem → elem
-index proxy (Vect xs) = unsafePartial $ unsafeIndex xs (toInt proxy)
+index = indexImpl <<< toInt
 
 -- -- | Safely access the head of a `Vect`.
 -- -- |
@@ -237,7 +237,7 @@ head ∷
   ∀ m elem.
   Compare m 0 GT ⇒
   Vect m elem → elem
-head (Vect xs) = unsafePartial $ unsafeIndex xs 0
+head = indexImpl 0
 
 -- -- | Attempt to create a `Vect` of a given size from an `Array`.
 -- -- |

@@ -1,0 +1,1 @@
+export const indexImpl = (i) => (v) => v[i];
