@@ -5,6 +5,7 @@
   , "effect"
   , "foldable-traversable"
   , "maybe"
+  , "ordered-collections"
   , "partial"
   , "prelude"
   , "spec"
