@@ -25,9 +25,14 @@ import Prelude
 import Data.Array (unsafeIndex)
 import Data.Array as A
 import Data.Array as Array
+import Data.Foldable (class Foldable)
+import Data.FoldableWithIndex (class FoldableWithIndex)
+import Data.FunctorWithIndex (class FunctorWithIndex)
 import Data.Maybe (Maybe(..))
 import Data.Ord (abs)
 import Data.Reflectable (class Reflectable, reflectType)
+import Data.Traversable (class Traversable)
+import Data.TraversableWithIndex (class TraversableWithIndex)
 import Partial.Unsafe (unsafePartial)
 import Prim.Int (class Add, class Compare)
 import Prim.Ordering (GT)
@@ -58,6 +63,11 @@ instance Eq elem ⇒ Eq (Vect len elem) where
 instance Functor (Vect len) where
   map f (Vect xs) = Vect (map f xs)
 
+derive newtype instance FunctorWithIndex Int (Vect len)
+derive newtype instance Foldable (Vect len)
+derive newtype instance FoldableWithIndex Int (Vect len)
+derive newtype instance Traversable (Vect len)
+derive newtype instance TraversableWithIndex Int (Vect len)
 
 -- -- | Create a `Vect` by replicating `len` times the given element
 -- -- |
