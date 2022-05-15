@@ -7,6 +7,7 @@ module Data.FastVect.Sparse.Read
   , drop
   , take
   , splitAt
+  , modify
   , index
   , indexModulo
   , head
@@ -35,7 +36,7 @@ import Data.TraversableWithIndex (class TraversableWithIndex)
 import Data.Tuple.Nested ((/\))
 import Data.Unfoldable (unfoldr)
 import Prim.Int (class Add, class Compare)
-import Prim.Ordering (GT)
+import Prim.Ordering (GT, LT)
 import Type.Proxy (Proxy(..))
 
 term ∷ forall (i ∷ Int). Proxy i
@@ -45,7 +46,7 @@ toInt ∷ forall (len ∷ Int). Reflectable len Int ⇒ Proxy len → Int
 toInt = reflectType
 
 newtype Vect ∷ Int → Type → Type
--- | A Sparse Vector Implementation backed by a `Array` map. Medium-fast reads, medium-fast writes.
+-- | A Sparse Vector Implementation backed by a `Map`. Medium-fast reads, medium-fast writes.
 -- |
 -- | ```
 -- | vect ∷ Vect 1 String
@@ -168,6 +169,24 @@ take ∷
 take proxy (Vect xs) = Vect (Map.fromFoldable $ Array.filter (\(ix /\ _) -> ix < takes) $ Map.toUnfoldableUnordered xs)
   where
   takes = toInt proxy
+
+-- -- | Safely modify element `m` from a `Vect`.
+-- -- |
+-- -- | ```
+-- -- | vect ∷ Vect 300 String
+-- -- | vect = replicate (term ∷ _ 300) "a"
+-- -- |
+-- -- | newVect ∷ Vect 100 String
+-- -- | newVect = modify (term ∷ _ 100) (append "b") vect
+-- -- | ```
+modify ∷
+  ∀ m n elem.
+  Reflectable m Int ⇒
+  Compare m (-1) GT ⇒
+  Compare n (-1) GT ⇒
+  Compare m n LT ⇒
+  Proxy m → (elem → elem) → Vect n elem → Vect n elem
+modify proxy f (Vect xs) = Vect $ Map.update (f >>> Just) (toInt proxy) xs
 
 -- -- | Split the `Vect` into two sub vectors `before` and `after`, where before contains up to `m` elements.
 -- -- |

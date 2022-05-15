@@ -1,4 +1,4 @@
-module Data.FastVect.FastVect
+module Data.FastVect.Sparse.Write
   ( Vect
   , replicate
   , empty
@@ -11,30 +11,31 @@ module Data.FastVect.FastVect
   , index
   , indexModulo
   , head
-  , fromArray
+  , fromMap
   , toArray
-  , adjust
-  , adjustM
   , cons
   , term
   , toInt
-  , reifyVect
   , (:)
   )
   where
 
 import Prelude
 
-import Data.Array as A
 import Data.Array as Array
-import Data.Foldable (class Foldable)
-import Data.FoldableWithIndex (class FoldableWithIndex)
+import Data.Filterable (filter, filterMap)
+import Data.Foldable (class Foldable, foldMapDefaultL, foldl, foldr)
+import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndexDefaultL)
 import Data.FunctorWithIndex (class FunctorWithIndex)
+import Data.Map as Map
 import Data.Maybe (Maybe(..))
-import Data.Ord (abs)
+import Data.Profunctor.Strong (second)
 import Data.Reflectable (class Reflectable, reflectType)
-import Data.Traversable (class Traversable)
+import Data.Traversable (class Traversable, sequenceDefault, traverse)
 import Data.TraversableWithIndex (class TraversableWithIndex)
+import Data.Tuple (Tuple(..), snd)
+import Data.Tuple.Nested (type (/\), (/\))
+import Data.Unfoldable (unfoldr)
 import Prim.Int (class Add, class Compare)
 import Prim.Ordering (GT, LT)
 import Type.Proxy (Proxy(..))
@@ -46,30 +47,41 @@ toInt ∷ forall (len ∷ Int). Reflectable len Int ⇒ Proxy len → Int
 toInt = reflectType
 
 newtype Vect ∷ Int → Type → Type
--- | A Vector: A list-like data structure that encodes it's length in the type, backed by an `Array`.
+-- | A Sparse Vector Implementation backed by an `Array` of tuples. Slow reads, fast writes.
 -- |
 -- | ```
 -- | vect ∷ Vect 1 String
 -- | vect = singleton "a"
 -- | ```
 newtype Vect len elem
-  = Vect (Array elem)
+  = Vect (Array (Int /\ elem))
 
 instance (Show elem, Reflectable len Int) ⇒ Show (Vect len elem) where
-  show (Vect elems) = "Vect " <> show (toInt (term ∷ _ len)) <> " " <> show elems
+  show (Vect elems) = "Vect.Sparse.Read " <> show (toInt (term ∷ _ len)) <> " " <> show elems
 
 derive newtype instance Eq elem ⇒ Eq (Vect len elem)
 derive newtype instance Ord elem ⇒ Ord (Vect len elem)
-derive newtype instance Functor (Vect len)
+instance Functor (Vect len) where
+  map f (Vect xs) = Vect $ map (second f) xs
 instance Apply (Vect len) where
-  apply (Vect fab) (Vect a) = Vect (Array.zipWith ($) fab a)
+  apply (Vect fab) (Vect a) = Vect $ Map.toUnfoldable (Map.fromFoldable fab <*> Map.fromFoldable a)
 instance (Compare len (-1) GT, Reflectable len Int) ⇒ Applicative (Vect len) where
   pure = replicate (Proxy :: _ len)
-derive newtype instance FunctorWithIndex Int (Vect len)
-derive newtype instance Foldable (Vect len)
-derive newtype instance FoldableWithIndex Int (Vect len)
-derive newtype instance Traversable (Vect len)
-derive newtype instance TraversableWithIndex Int (Vect len)
+instance FunctorWithIndex Int (Vect len) where
+  mapWithIndex f (Vect xs) = Vect $ map (\(i /\ a) -> Tuple i (f i a)) xs
+instance Foldable (Vect len) where
+  foldl bab b (Vect xs) = foldl bab b (map snd xs)
+  foldr abb b (Vect xs) = foldr abb b (map snd xs)
+  foldMap = foldMapDefaultL
+instance FoldableWithIndex Int (Vect len) where
+  foldlWithIndex ibab b (Vect xs) = foldl (\b (i /\ a) -> ibab i b a) b xs
+  foldrWithIndex iabb b (Vect xs) = foldr (\(i /\ a) b -> iabb i a b) b xs
+  foldMapWithIndex = foldMapWithIndexDefaultL
+instance Traversable (Vect len) where
+  traverse amb (Vect xs) = Vect <$> (traverse (traverse amb) xs)
+  sequence = sequenceDefault
+instance TraversableWithIndex Int (Vect len) where
+  traverseWithIndex amb (Vect xs) = Vect <$> (traverse (\(i /\ x) -> Tuple i <$> amb i x) xs)
 
 -- -- | Create a `Vect` by replicating `len` times the given element
 -- -- |
@@ -81,7 +93,9 @@ replicate ∷
   ∀ len elem.
   Compare len (-1) GT ⇒
   Reflectable len Int ⇒ Proxy len → elem → Vect len elem
-replicate proxy elem = Vect $ A.replicate (toInt proxy) elem
+replicate proxy elem = Vect $ (unfoldr (\i@(ix /\ b) -> if ix == terminus then Nothing else Just (i /\ ((ix + 1) /\ b))) (0 /\ elem))
+  where
+  terminus = toInt proxy
 
 
 -- -- | Creates the empty `Vect`.
@@ -104,7 +118,7 @@ empty = Vect []
 singleton ∷
   ∀ elem.
   elem → Vect 1 elem
-singleton elem = Vect [ elem ]
+singleton elem = Vect [0 /\ elem]
 
 -- -- | Append two `Vect`s.
 -- -- |
@@ -121,10 +135,11 @@ singleton elem = Vect [ elem ]
 append ∷
   ∀ m n m_plus_n elem.
   Add m n m_plus_n ⇒
+  Reflectable m Int ⇒
   Compare m (-1) GT ⇒
   Compare n (-1) GT ⇒
   Vect m elem → Vect n elem → Vect m_plus_n elem
-append (Vect xs) (Vect ys) = Vect (xs <> ys)
+append (Vect xs) (Vect ys) = Vect (xs <> map (\(ix /\ a) -> ((ix + (toInt (Proxy :: _ m))) /\ a)) ys)
 
 -- -- | Safely drop `m` elements from a `Vect`.
 -- -- | Will result in a compile-time error if you are trying to drop more elements than exist in the vector.
@@ -143,7 +158,9 @@ drop ∷
   Compare m (-1) GT ⇒
   Compare n (-1) GT ⇒
   Proxy m → Vect m_plus_n elem → Vect n elem
-drop proxy (Vect xs) = Vect (A.drop (toInt proxy) xs)
+drop proxy (Vect xs) = Vect (filterMap (\(ix /\ a) -> if ix >= drops then Just ((ix - drops) /\ a) else Nothing) $ xs)
+  where
+  drops = toInt proxy
 
 -- -- | Safely take `m` elements from a `Vect`.
 -- -- | Will result in a compile-time error if you are trying to take more elements than exist in the vector.
@@ -162,9 +179,9 @@ take ∷
   Compare m (-1) GT ⇒
   Compare n (-1) GT ⇒
   Proxy m → Vect m_plus_n elem → Vect m elem
-take proxy (Vect xs) = Vect (A.take (toInt proxy) xs)
-
-foreign import modifyImpl :: forall n elem. Int → (elem → elem) → Vect n elem → Vect n elem
+take proxy (Vect xs) = Vect (filter (\(ix /\ _) -> ix < takes) $ xs)
+  where
+  takes = toInt proxy
 
 -- -- | Safely modify element `m` from a `Vect`.
 -- -- |
@@ -182,7 +199,7 @@ modify ∷
   Compare n (-1) GT ⇒
   Compare m n LT ⇒
   Proxy m → (elem → elem) → Vect n elem → Vect n elem
-modify proxy = modifyImpl (toInt proxy)
+modify proxy f (Vect xs) = Vect $ Map.toUnfoldable $ Map.update (f >>> Just) (toInt proxy) (Map.fromFoldable xs)
 
 -- -- | Split the `Vect` into two sub vectors `before` and `after`, where before contains up to `m` elements.
 -- -- |
@@ -203,9 +220,9 @@ splitAt ∷
   Compare m (-1) GT ⇒
   Compare n (-1) GT ⇒
   Proxy m → Vect m_plus_n elem → { before ∷ Vect m elem, after ∷ Vect n elem }
-splitAt proxy (Vect xs) = { before: Vect before, after: Vect after }
+splitAt proxy (Vect xs) =  ( (\{yes,no} -> {before:  Vect $ yes, after: Vect $ no})  $ Array.partition (\(ix /\ _) -> ix < splits) $ xs)
   where
-  { before, after } = A.splitAt (toInt proxy) xs
+  splits = toInt proxy
 
 -- -- | Safely access the `n`-th modulo m element of a `Vect`.
 -- -- |
@@ -220,10 +237,8 @@ indexModulo ∷
   ∀ m elem.
   Compare m 0 GT ⇒
   Reflectable m Int ⇒
-  Int → Vect m elem → elem
-indexModulo i = indexImpl (i `mod` toInt (Proxy ∷ _ m))
-
-foreign import indexImpl :: forall m elem. Int → Vect m elem → elem
+  Int → Vect m elem → Maybe elem
+indexModulo i (Vect xs) = Map.lookup i $ Map.fromFoldable xs
 
 -- -- | Safely access the `i`-th element of a `Vect`.
 -- -- |
@@ -242,8 +257,8 @@ index ∷
   Add i n m_minus_one ⇒
   Compare i (-1) GT ⇒
   Reflectable i Int ⇒
-  Proxy i → Vect m elem → elem
-index = indexImpl <<< toInt
+  Proxy i → Vect m elem → Maybe elem
+index proxy (Vect xs) = Map.lookup (toInt proxy) $ Map.fromFoldable xs
 
 -- -- | Safely access the head of a `Vect`.
 -- -- |
@@ -257,8 +272,8 @@ index = indexImpl <<< toInt
 head ∷
   ∀ m elem.
   Compare m 0 GT ⇒
-  Vect m elem → elem
-head = indexImpl 0
+  Vect m elem → Maybe elem
+head (Vect xs) = Map.lookup 0 $ Map.fromFoldable xs
 
 -- -- | Attempt to create a `Vect` of a given size from an `Array`.
 -- -- |
@@ -267,49 +282,21 @@ head = indexImpl 0
 -- -- |
 -- -- | fromArray (term ∷ _ 4) ["a", "b", "c"] = Nothing
 -- -- | ```
-fromArray ∷ ∀ len elem.
+fromMap ∷ ∀ len elem.
   Reflectable len Int ⇒
   Compare len (-1) GT ⇒
   Proxy len →
-  Array elem →
+  Map.Map Int elem →
   Maybe (Vect len elem)
-fromArray proxy array | Array.length array == toInt proxy = Just (Vect array)
-fromArray _ _ = Nothing
+fromMap proxy mp | Just { key } <- Map.findMax mp
+                 , key < toInt proxy && key >= 0 = Just (Vect $ Map.toUnfoldable mp)
+fromMap _ _ = Nothing
 
 -- -- | Converts the `Vect` to an `Array`, effectively dropping the size information.
 toArray ∷ ∀ len elem.
   Compare len (-1) GT ⇒
-  Vect len elem → Array elem
+  Vect len elem → Array (Int /\ elem)
 toArray (Vect arr) = arr
-
--- -- | Creates a `Vect` by adjusting the given `Array`, padding with the provided element if the array is to small or dropping elements if the array is to big.
--- -- |
--- -- | ```
--- -- | toArray $ adjust (term ∷ _ 10) 0 [ 1, 2, 3 ] == [ 0, 0, 0, 0, 0, 0, 0, 1, 2, 3 ]
--- -- |
--- -- | toArray $ adjust (term ∷ _ 3) 0 [ 0, 0, 0, 0, 1, 2, 3 ] == [ 1, 2, 3 ]
--- -- | ```
-adjust ∷ ∀ len elem.
-  Reflectable len Int ⇒
-  Compare len (-1) GT ⇒
-  Proxy len →
-  elem →
-  Array elem →
-  Vect len elem
-adjust proxy elem array = case Array.length array - toInt proxy of
-  0 → Vect array
-  len | len < 0 → Vect $ A.replicate (abs len) elem <> array
-  len → Vect $ A.drop len array
-
--- -- | Like `adjust` but uses the Moinoid instance of elem to create the elements.
-adjustM ∷ ∀ len elem.
-  Monoid elem ⇒
-  Reflectable len Int ⇒
-  Compare len (-1) GT ⇒
-  Proxy len →
-  Array elem →
-  Vect len elem
-adjustM proxy = adjust proxy mempty
 
 -- -- | Attaches an element to the front of the `Vect`, creating a new `Vect` with size incremented.
 -- -- |
@@ -319,14 +306,8 @@ cons ∷
   Add 1 len len_plus_1 ⇒
   Compare len (-1) GT ⇒
   elem → Vect len elem → Vect len_plus_1 elem
-cons elem (Vect arr) = Vect (A.cons elem arr)
+cons elem (Vect arr) = Vect (Array.cons (0  /\ elem) (map (\(ix /\ a) -> ((ix + 1 ) /\ a)) arr))
 
 infixr 6 cons as :
 infixr 6 index as !!
 infixr 6 indexModulo as !%
-
-reifyVect ∷
-  ∀ elem r.
-  Array elem →
-  (∀ len. Vect len elem → r) → r
-reifyVect arr f = f (Vect arr)
