@@ -8,6 +8,7 @@ module Data.FastVect.FastVect
   , take
   , splitAt
   , index
+  , indexModulo
   , head
   , fromArray
   , toArray
@@ -16,6 +17,7 @@ module Data.FastVect.FastVect
   , cons
   , term
   , toInt
+  , reifyVect
   , (:)
   )
   where
@@ -191,6 +193,22 @@ splitAt proxy (Vect xs) = { before: Vect before, after: Vect after }
 -- -- | elem :: String
 -- -- | elem = index (term :: _ 299) vect
 -- -- | ```
+indexModulo ∷
+  ∀ m elem.
+  Compare m 0 GT =>
+  Reflectable m Int =>
+  Int -> Vect m elem → elem
+indexModulo i (Vect xs) = unsafePartial $ unsafeIndex xs (i `mod` toInt (Proxy :: _ m))
+
+-- -- | Safely access the `n`-th modulo m element of a `Vect`.
+-- -- |
+-- -- | ```
+-- -- | vect :: Vect 300 String
+-- -- | vect = replicate (term :: _ 300) "a"
+-- -- |
+-- -- | elem :: String
+-- -- | elem = index (term :: _ 299) vect
+-- -- | ```
 index ∷
   ∀ m m_minus_one i n elem.
   Compare m_minus_one (-1) GT =>
@@ -279,3 +297,11 @@ cons ∷
 cons elem (Vect arr) = Vect (A.cons elem arr)
 
 infixr 6 cons as :
+infixr 6 index as !!
+infixr 6 indexModulo as !%
+
+reifyVect ∷
+  ∀ elem r.
+  Array elem ->
+  (∀ len. Vect len elem -> r) -> r
+reifyVect arr f = f (Vect arr)
