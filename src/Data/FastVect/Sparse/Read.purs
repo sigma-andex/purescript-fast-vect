@@ -1,4 +1,4 @@
-module Data.FastVect.FastVect.Sparse.Read
+module Data.FastVect.Sparse.Read
   ( Vect
   , replicate
   , empty
@@ -22,6 +22,7 @@ module Data.FastVect.FastVect.Sparse.Read
 import Prelude
 
 import Data.Array as Array
+import Data.Filterable (filterMap)
 import Data.Foldable (class Foldable)
 import Data.FoldableWithIndex (class FoldableWithIndex)
 import Data.FunctorWithIndex (class FunctorWithIndex)
@@ -140,14 +141,12 @@ drop ∷
   ∀ m n m_plus_n elem.
   Add m n m_plus_n ⇒
   Reflectable m Int ⇒
-  Reflectable m_plus_n Int ⇒
   Compare m (-1) GT ⇒
   Compare n (-1) GT ⇒
   Proxy m → Vect m_plus_n elem → Vect n elem
-drop proxy (Vect xs) = Vect (Map.fromFoldable $ Array.filter (\(ix /\ _) -> (len - ix - 1) < drops) $ Map.toUnfoldableUnordered xs)
+drop proxy (Vect xs) = Vect ((Map.fromFoldable :: Array _ -> _) $ filterMap (\(ix /\ a) -> if ix >= drops then Just ((ix - drops) /\ a) else Nothing) $ Map.toUnfoldableUnordered xs)
   where
   drops = toInt proxy
-  len = toInt (Proxy :: _ m_plus_n)
 
 -- -- | Safely take `m` elements from a `Vect`.
 -- -- | Will result in a compile-time error if you are trying to take more elements than exist in the vector.
