@@ -11,3 +11,4 @@ output
 # Editor config
 .psc-ide-port
 .purs-repl
+/.vscode/
