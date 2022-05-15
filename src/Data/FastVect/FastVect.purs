@@ -184,14 +184,14 @@ splitAt proxy (Vect xs) = { before: Vect before, after: Vect after }
   where
   { before, after } = A.splitAt (toInt proxy) xs
 
--- -- | Safely access the `i`-th element of a `Vect`.
+-- -- | Safely access the `n`-th modulo m element of a `Vect`.
 -- -- |
 -- -- | ```
 -- -- | vect :: Vect 300 String
 -- -- | vect = replicate (term :: _ 300) "a"
 -- -- |
 -- -- | elem :: String
--- -- | elem = index (term :: _ 299) vect
+-- -- | elem = indexModulo 5352523 vect
 -- -- | ```
 indexModulo ∷
   ∀ m elem.
@@ -200,7 +200,7 @@ indexModulo ∷
   Int -> Vect m elem → elem
 indexModulo i (Vect xs) = unsafePartial $ unsafeIndex xs (i `mod` toInt (Proxy :: _ m))
 
--- -- | Safely access the `n`-th modulo m element of a `Vect`.
+-- -- | Safely access the `i`-th element of a `Vect`.
 -- -- |
 -- -- | ```
 -- -- | vect :: Vect 300 String
