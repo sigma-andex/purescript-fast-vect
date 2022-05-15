@@ -27,7 +27,7 @@ spec =
         actualFail2 `shouldEqual` Nothing
 
       it "should successfully acccess elements from a Vect" do
-        let 
+        let
           vect = 1 : 2 : 3 : 4 : empty
         (head vect) `shouldEqual` 1
         --(head empty) `shouldEqual` 1 -- should not compile

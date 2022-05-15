@@ -1,42 +1,18 @@
 let upstream =
-      https://raw.githubusercontent.com/purescript/package-sets/prepare-0.15/src/packages.dhall
-        sha256:b1c6d06132b7cbf1e93b1e5343044fba1604b50bfbe02d8f80a3002e71569c59
+      https://github.com/purescript/package-sets/releases/download/psc-0.15.0-20220513/packages.dhall sha256:1ed784f37ae6131d99acd542d058d5ce39954ccaacc3adba5cc7cf1549d2bffa
 
-in  upstream
-  with metadata.version = "v0.15.0-alpha-05"
+let upstream =
+      https://github.com/purescript/package-sets/releases/download/psc-0.15.0-20220507/packages.dhall
+        sha256:cf54330f3bc1b25a093b69bff8489180c954b43668c81288901a2ec29a08cc64
 
-  with spec = {
-    repo = "https://github.com/purescript-spec/purescript-spec.git"
-  , version = "master"
-  , dependencies
-       =
-    [ "aff"
-    , "ansi"
-    , "avar"
-    , "console"
-    , "exceptions"
-    , "foldable-traversable"
-    , "fork"
-    , "now"
-    , "pipes"
-    , "prelude"
-    , "strings"
-    , "transformers"
-    ]
-  }
-  with spec-discovery =
-    { repo =
-        "https://github.com/purescript-spec/purescript-spec-discovery.git"
-    , version = "master"
-    , dependencies =
-      [ "aff"
-      , "aff-promise"
-      , "arrays"
-      , "console"
-      , "effect"
-      , "foldable-traversable"
-      , "node-fs"
-      , "prelude"
-      , "spec"
-      ]
-    }
+let additions =
+      { typelevel-arithmetic =
+        { dependencies =
+          [ "tuples"
+          ]
+        , repo = "https://github.com/sigma-andex/purescript-typelevel-arithmetic.git"
+        , version = "v0.1.0"
+        }
+      }
+
+in  upstream // additions
