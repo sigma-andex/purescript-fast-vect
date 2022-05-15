@@ -9,7 +9,6 @@
   , "maybe"
   , "ordered-collections"
   , "prelude"
-  , "profunctor"
   , "spec"
   , "spec-discovery"
   , "tuples"

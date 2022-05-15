@@ -5,11 +5,14 @@ import Prelude
 import Data.FastVect.FastVect as FV
 import Data.FastVect.Sparse.Read as FVR
 import Data.FastVect.Sparse.Write as FVW
+import Data.Foldable (foldl)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
+import Data.Traversable (traverse)
 import Data.Tuple.Nested ((/\))
 import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldEqual)
+import Type.Proxy (Proxy(..))
 
 spec ∷ Spec Unit
 spec =
@@ -34,6 +37,7 @@ spec =
         it "should successfully acccess elements from a Vect" do
           let
             vect = FV.cons 1 $ FV.cons 2 $ FV.cons 3 $ FV.cons 4 FV.empty
+          (foldl (+) 0 vect) `shouldEqual` 10
           (FV.head vect) `shouldEqual` 1
           --(head empty) `shouldEqual` 1 -- should not compile
           (FV.index (FV.term :: _ 0) vect) `shouldEqual` 1
@@ -96,6 +100,7 @@ spec =
         it "should successfully acccess elements from a Vect" do
           let
             vect = FVR.cons 1 $ FVR.cons 2 $ FVR.cons 3 $ FVR.cons 4 FVR.empty
+          (foldl (+) 0 vect) `shouldEqual` 10
           (FVR.head vect) `shouldEqual` (Just 1)
           --(head empty) `shouldEqual` 1 -- should not compile
           (FVR.index (FVR.term :: _ 0) vect) `shouldEqual` (Just 1)
@@ -139,6 +144,10 @@ spec =
         it "should successfully acccess elements from a Vect" do
           let
             vect = FVW.cons 1 $ FVW.cons 2 $ FVW.cons 3 $ FVW.cons 4 FVW.empty
+          (foldl (+) 0 vect) `shouldEqual` 10
+          (foldl (+) 0 (FVW.set (Proxy :: _ 0) 101 vect)) `shouldEqual` 110
+          (traverse Just vect) `shouldEqual` Just vect
+          (traverse Just $ (FVW.set (Proxy :: _ 0) 101 vect)) `shouldEqual` Just (FVW.set (Proxy :: _ 0) 101 vect)
           (FVW.head vect) `shouldEqual` (Just 1)
           --(head empty) `shouldEqual` 1 -- should not compile
           (FVW.index (FVW.term :: _ 0) vect) `shouldEqual` (Just 1)

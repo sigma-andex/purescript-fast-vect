@@ -25,14 +25,14 @@ module Data.FastVect.Sparse.Write
 import Prelude
 
 import Data.Filterable (filter, filterMap)
-import Data.Foldable (class Foldable, foldMapDefaultL, foldl, foldr)
-import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndexDefaultL, foldlWithIndex)
+import Data.Foldable (class Foldable, foldMapDefaultL, foldl, foldrDefault)
+import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndexDefaultL, foldlWithIndex, foldrWithIndexDefault)
 import Data.FunctorWithIndex (class FunctorWithIndex)
 import Data.List as List
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Reflectable (class Reflectable, reflectType)
-import Data.Traversable (class Traversable, sequenceDefault, traverse)
+import Data.Traversable (class Traversable, sequenceDefault)
 import Data.TraversableWithIndex (class TraversableWithIndex)
 import Data.Tuple.Nested ((/\))
 import Data.Unfoldable (unfoldr)
@@ -66,7 +66,9 @@ foreign import insertImpl :: Int -> JSSet -> JSSet
 foreign import hasImpl :: Int -> JSSet -> Boolean
 
 fromIE :: forall elem. List.List { ix :: Int, elem :: elem } -> Map.Map Int elem
-fromIE = foldl (\b {ix,elem} -> Map.insert ix elem b) Map.empty
+fromIE = foldl (\b {ix,elem} -> Map.alter (case _ of
+  Just x -> Just x
+  Nothing -> Just elem) ix b) Map.empty
 toIE :: forall elem. Map.Map Int elem -> List.List { ix :: Int, elem :: elem }
 toIE = foldlWithIndex (\ix b elem -> List.Cons {ix,elem} b) List.Nil
 
@@ -83,18 +85,40 @@ instance (Compare len (-1) GT, Reflectable len Int) ⇒ Applicative (Vect len) w
 instance FunctorWithIndex Int (Vect len) where
   mapWithIndex f (Vect xs) = Vect $ map (\{ix, elem } -> {ix, elem: f ix elem }) xs
 instance Foldable (Vect len) where
-  foldl bab b (Vect xs) = foldl (\b {elem} -> bab b elem) b xs
-  foldr abb b (Vect xs) = foldr (\{elem} a -> abb elem b) b xs
-  foldMap = foldMapDefaultL
+  foldl bab = go emptyImpl
+    where
+    go _ b (Vect List.Nil) = b
+    go s b (Vect (List.Cons {ix} y)) | hasImpl ix s = go s b (Vect y)
+    go s b (Vect (List.Cons {ix, elem} y)) = go (insertImpl ix s) (bab b elem) (Vect y)
+  foldr i = foldrDefault i
+  foldMap i = foldMapDefaultL i
 instance FoldableWithIndex Int (Vect len) where
-  foldlWithIndex ibab b (Vect xs) = foldl (\b {ix, elem} -> ibab ix b elem) b xs
-  foldrWithIndex iabb b (Vect xs) = foldr (\{ix,elem} b -> iabb ix elem b) b xs
-  foldMapWithIndex = foldMapWithIndexDefaultL
+  foldlWithIndex ibab = go emptyImpl
+    where
+    go _ b (Vect List.Nil) = b
+    go s b (Vect (List.Cons {ix} y)) | hasImpl ix s = go s b (Vect y)
+    go s b (Vect (List.Cons {ix, elem} y)) = go (insertImpl ix s) (ibab ix b elem) (Vect y)
+  foldrWithIndex i = foldrWithIndexDefault i
+  foldMapWithIndex i = foldMapWithIndexDefaultL i
 instance Traversable (Vect len) where
-  traverse amb (Vect xs) = Vect <$> (traverse (\{ix, elem} -> {ix, elem: _ } <$> amb  elem)) xs
+  traverse amb = go emptyImpl
+    where
+    go _ (Vect List.Nil) = pure $ Vect List.Nil
+    go s (Vect (List.Cons {ix} y)) | hasImpl ix s = go s (Vect y)
+    go s (Vect (List.Cons {ix, elem} y)) = ado
+      res <- amb elem
+      Vect vc <- go (insertImpl ix s) (Vect y)
+      in Vect $ (List.Cons {ix, elem: res} vc)
   sequence = sequenceDefault
 instance TraversableWithIndex Int (Vect len) where
-  traverseWithIndex amb (Vect xs) = Vect <$> (traverse (\{ix, elem} -> {ix, elem: _ } <$> amb ix elem) xs)
+  traverseWithIndex iamb = go emptyImpl
+    where
+    go _ (Vect List.Nil) = pure $ Vect List.Nil
+    go s (Vect (List.Cons {ix} y)) | hasImpl ix s = go s (Vect y)
+    go s (Vect (List.Cons {ix, elem} y)) = ado
+      res <- iamb ix elem
+      Vect vc <- go (insertImpl ix s) (Vect y)
+      in Vect $ (List.Cons {ix, elem: res} vc)
 
 -- -- | Create a `Vect` by replicating `len` times the given element
 -- -- |
@@ -342,7 +366,7 @@ cons ∷
   Add 1 len len_plus_1 ⇒
   Compare len (-1) GT ⇒
   elem → Vect len elem → Vect len_plus_1 elem
-cons elem (Vect arr) = Vect (List.Cons {ix:0,elem} (map (\{ix, elem} -> {ix: ix + 1 , elem}) arr))
+cons elem (Vect arr) = Vect (List.Cons {ix:0,elem} (map (\{ix, elem: elt} -> {ix: ix + 1 , elem: elt}) arr))
 
 snoc ∷
   ∀ len len_plus_1 elem.
