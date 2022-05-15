@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [v0.6.0]
 - Add `indexModulo`, `reifyVect`. Add additional typeclass instances. Simplify `head`. Format code. Upgrade to latest package-set. (#9 by @mikesol)
 
 ## [v0.5.0]
