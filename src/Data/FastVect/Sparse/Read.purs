@@ -14,6 +14,7 @@ module Data.FastVect.Sparse.Read
   , fromMap
   , toMap
   , cons
+  , snoc
   , term
   , toInt
   , (:)
@@ -287,13 +288,20 @@ toMap (Vect arr) = arr
 
 -- -- | Attaches an element to the front of the `Vect`, creating a new `Vect` with size incremented.
 -- -- |
--- -- | Note, the running time of this function is `O(n)`.
 cons ∷
   ∀ len len_plus_1 elem.
   Add 1 len len_plus_1 ⇒
   Compare len (-1) GT ⇒
   elem → Vect len elem → Vect len_plus_1 elem
 cons elem (Vect arr) = Vect (Map.insert 0 elem (Map.fromFoldable $ map (\(ix /\ a) -> ((ix + 1 ) /\ a)) $ (Map.toUnfoldableUnordered :: _ -> Array _) arr))
+
+snoc ∷
+  ∀ len len_plus_1 elem.
+  Reflectable len Int ⇒
+  Add 1 len len_plus_1 ⇒
+  Compare len (-1) GT ⇒
+  Vect len elem →  elem → Vect len_plus_1 elem
+snoc (Vect xs) elem = Vect $ Map.insert (toInt (Proxy :: _ len)) elem xs
 
 infixr 6 cons as :
 infixr 6 index as !!

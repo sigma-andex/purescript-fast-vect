@@ -16,6 +16,7 @@ module Data.FastVect.FastVect
   , adjust
   , adjustM
   , cons
+  , snoc
   , term
   , toInt
   , reifyVect
@@ -320,6 +321,15 @@ cons ∷
   Compare len (-1) GT ⇒
   elem → Vect len elem → Vect len_plus_1 elem
 cons elem (Vect arr) = Vect (A.cons elem arr)
+
+-- -- | Attaches an element to the end of the `Vect`, creating a new `Vect` with size incremented.
+-- -- |
+snoc ∷
+  ∀ len len_plus_1 elem.
+  Add 1 len len_plus_1 ⇒
+  Compare len (-1) GT ⇒
+  Vect len elem → elem → Vect len_plus_1 elem
+snoc (Vect arr) elem = Vect (A.snoc arr elem)
 
 infixr 6 cons as :
 infixr 6 index as !!
