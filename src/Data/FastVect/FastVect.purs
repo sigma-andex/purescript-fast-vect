@@ -8,6 +8,7 @@ module Data.FastVect.FastVect
   , take
   , splitAt
   , modify
+  , set
   , index
   , indexModulo
   , head
@@ -184,6 +185,24 @@ modify ∷
   Compare m n LT ⇒
   Proxy m → (elem → elem) → Vect n elem → Vect n elem
 modify proxy = modifyImpl (toInt proxy)
+
+-- -- | Safely set element `m` from a `Vect`.
+-- -- |
+-- -- | ```
+-- -- | vect ∷ Vect 300 String
+-- -- | vect = replicate (term ∷ _ 300) "a"
+-- -- |
+-- -- | newVect ∷ Vect 100 String
+-- -- | newVect = modify (term ∷ _ 100) "b" vect
+-- -- | `
+set ∷
+  ∀ m n elem.
+  Reflectable m Int ⇒
+  Compare m (-1) GT ⇒
+  Compare n (-1) GT ⇒
+  Compare m n LT ⇒
+  Proxy m → elem → Vect n elem → Vect n elem
+set proxy = modify proxy <<< const
 
 -- -- | Split the `Vect` into two sub vectors `before` and `after`, where before contains up to `m` elements.
 -- -- |
