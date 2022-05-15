@@ -258,7 +258,7 @@ indexModulo ∷
   Compare m 0 GT ⇒
   Reflectable m Int ⇒
   Int → Vect m elem → Maybe elem
-indexModulo i (Vect xs) = Map.lookup i $ Map.fromFoldable xs
+indexModulo i (Vect xs) = Map.lookup (i `mod` toInt (Proxy ∷ _ m)) $ Map.fromFoldable xs
 
 -- -- | Safely access the `i`-th element of a `Vect`.
 -- -- |
