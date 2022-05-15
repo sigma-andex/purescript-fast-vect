@@ -57,12 +57,9 @@ newtype Vect len elem
 instance (Show elem, Reflectable len Int) ⇒ Show (Vect len elem) where
   show (Vect elems) = "Vect " <> show (toInt (term :: _ len)) <> " " <> show elems
 
-instance Eq elem ⇒ Eq (Vect len elem) where
-  eq (Vect arr1) (Vect arr2) = eq arr1 arr2
-
-instance Functor (Vect len) where
-  map f (Vect xs) = Vect (map f xs)
-
+derive newtype instance Eq elem => Eq (Vect len elem)
+derive newtype instance Ord elem => Ord (Vect len elem)
+derive newtype instance Functor (Vect len)
 derive newtype instance FunctorWithIndex Int (Vect len)
 derive newtype instance Foldable (Vect len)
 derive newtype instance FoldableWithIndex Int (Vect len)
