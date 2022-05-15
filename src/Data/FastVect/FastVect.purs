@@ -62,6 +62,10 @@ instance (Show elem, Reflectable len Int) ⇒ Show (Vect len elem) where
 derive newtype instance Eq elem ⇒ Eq (Vect len elem)
 derive newtype instance Ord elem ⇒ Ord (Vect len elem)
 derive newtype instance Functor (Vect len)
+instance Apply (Vect len) where
+  apply (Vect fab) (Vect a) = Vect (Array.zipWith ($) fab a)
+instance (Compare len (-1) GT, Reflectable len Int) ⇒ Applicative (Vect len) where
+  pure = replicate (Proxy :: _ len)
 derive newtype instance FunctorWithIndex Int (Vect len)
 derive newtype instance Foldable (Vect len)
 derive newtype instance FoldableWithIndex Int (Vect len)
