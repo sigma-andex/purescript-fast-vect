@@ -13,7 +13,7 @@ module Data.FastVect.Sparse.Write
   , indexModulo
   , head
   , fromMap
-  , toArray
+  , toList
   , cons
   , snoc
   , term
@@ -24,11 +24,11 @@ module Data.FastVect.Sparse.Write
 
 import Prelude
 
-import Data.Array as Array
 import Data.Filterable (filter, filterMap)
 import Data.Foldable (class Foldable, foldMapDefaultL, foldl, foldr)
 import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndexDefaultL)
 import Data.FunctorWithIndex (class FunctorWithIndex)
+import Data.List as List
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Profunctor.Strong (second)
@@ -49,14 +49,14 @@ toInt ∷ forall (len ∷ Int). Reflectable len Int ⇒ Proxy len → Int
 toInt = reflectType
 
 newtype Vect ∷ Int → Type → Type
--- | A Sparse Vector Implementation backed by an `Array` of tuples. Slow reads, fast writes.
+-- | A Sparse Vector Implementation backed by an `List` of tuples. Slow reads, fast writes.
 -- |
 -- | ```
 -- | vect ∷ Vect 1 String
 -- | vect = singleton "a"
 -- | ```
 newtype Vect len elem
-  = Vect (Array (Int /\ elem))
+  = Vect (List.List (Int /\ elem))
 
 instance (Show elem, Reflectable len Int) ⇒ Show (Vect len elem) where
   show (Vect elems) = "Vect.Sparse.Read " <> show (toInt (term ∷ _ len)) <> " " <> show elems
@@ -109,7 +109,7 @@ replicate proxy elem = Vect $ (unfoldr (\i@(ix /\ b) -> if ix == terminus then N
 empty ∷
   ∀ elem.
   Vect 0 elem
-empty = Vect []
+empty = Vect List.Nil
 
 -- -- | Create a `Vect` of one element.
 -- -- |
@@ -120,7 +120,7 @@ empty = Vect []
 singleton ∷
   ∀ elem.
   elem → Vect 1 elem
-singleton elem = Vect [0 /\ elem]
+singleton elem = Vect (pure (0 /\ elem))
 
 -- -- | Append two `Vect`s.
 -- -- |
@@ -219,7 +219,10 @@ set ∷
   Compare n (-1) GT ⇒
   Compare m n LT ⇒
   Proxy m → elem → Vect n elem → Vect n elem
-set proxy elem (Vect xs) = Vect $ Array.snoc xs (toInt proxy /\ elem)
+-- we use cons to represent that this is a newer value
+-- this will often cause a duplicate, but we don't care
+-- as we weed out duplicates during traversals
+set proxy elem (Vect xs) = Vect $ List.Cons (toInt proxy /\ elem) xs
 
 -- -- | Split the `Vect` into two sub vectors `before` and `after`, where before contains up to `m` elements.
 -- -- |
@@ -240,7 +243,7 @@ splitAt ∷
   Compare m (-1) GT ⇒
   Compare n (-1) GT ⇒
   Proxy m → Vect m_plus_n elem → { before ∷ Vect m elem, after ∷ Vect n elem }
-splitAt proxy (Vect xs) =  ( (\{yes,no} -> {before:  Vect $ yes, after: Vect $ no})  $ Array.partition (\(ix /\ _) -> ix < splits) $ xs)
+splitAt proxy (Vect xs) =  ( (\{yes,no} -> {before:  Vect $ yes, after: Vect $ no})  $ List.partition (\(ix /\ _) -> ix < splits) $ xs)
   where
   splits = toInt proxy
 
@@ -258,8 +261,9 @@ indexModulo ∷
   Compare m 0 GT ⇒
   Reflectable m Int ⇒
   Int → Vect m elem → Maybe elem
-indexModulo i (Vect xs) = Map.lookup (i `mod` toInt (Proxy ∷ _ m)) $ Map.fromFoldable xs
-
+indexModulo i (Vect xs) = List.findMap (\(ix /\ b) -> if moded == ix then Just b else Nothing) xs
+  where
+  moded = i `mod` toInt (Proxy ∷ _ m)
 -- -- | Safely access the `i`-th element of a `Vect`.
 -- -- |
 -- -- | ```
@@ -278,7 +282,9 @@ index ∷
   Compare i (-1) GT ⇒
   Reflectable i Int ⇒
   Proxy i → Vect m elem → Maybe elem
-index proxy (Vect xs) = Map.lookup (toInt proxy) $ Map.fromFoldable xs
+index proxy (Vect xs) = List.findMap (\(ix /\ b) -> if ixInt == ix then Just b else Nothing) xs
+  where
+  ixInt = toInt proxy
 
 -- -- | Safely access the head of a `Vect`.
 -- -- |
@@ -293,14 +299,14 @@ head ∷
   ∀ m elem.
   Compare m 0 GT ⇒
   Vect m elem → Maybe elem
-head (Vect xs) = Map.lookup 0 $ Map.fromFoldable xs
+head (Vect xs) = List.findMap (\(ix /\ b) -> if ix == 0 then Just b else Nothing) xs
 
--- -- | Attempt to create a `Vect` of a given size from an `Array`.
+-- -- | Attempt to create a `Vect` of a given size from an `List`.
 -- -- |
 -- -- | ```
--- -- | fromArray (term ∷ _ 3) ["a", "b", "c"] = Just (Vect (term ∷ _ 3) ["a", "b", "c"])
+-- -- | fromList (term ∷ _ 3) ["a", "b", "c"] = Just (Vect (term ∷ _ 3) ["a", "b", "c"])
 -- -- |
--- -- | fromArray (term ∷ _ 4) ["a", "b", "c"] = Nothing
+-- -- | fromList (term ∷ _ 4) ["a", "b", "c"] = Nothing
 -- -- | ```
 fromMap ∷ ∀ len elem.
   Reflectable len Int ⇒
@@ -312,11 +318,11 @@ fromMap proxy mp | Just { key } <- Map.findMax mp
                  , key < toInt proxy && key >= 0 = Just (Vect $ Map.toUnfoldable mp)
 fromMap _ _ = Nothing
 
--- -- | Converts the `Vect` to an `Array`, effectively dropping the size information.
-toArray ∷ ∀ len elem.
+-- -- | Converts the `Vect` to an `List`, effectively dropping the size information.
+toList ∷ ∀ len elem.
   Compare len (-1) GT ⇒
-  Vect len elem → Array (Int /\ elem)
-toArray (Vect arr) = arr
+  Vect len elem → List.List (Int /\ elem)
+toList (Vect arr) = arr
 
 -- -- | Attaches an element to the front of the `Vect`, creating a new `Vect` with size incremented.
 -- -- |
@@ -325,7 +331,7 @@ cons ∷
   Add 1 len len_plus_1 ⇒
   Compare len (-1) GT ⇒
   elem → Vect len elem → Vect len_plus_1 elem
-cons elem (Vect arr) = Vect (Array.cons (0  /\ elem) (map (\(ix /\ a) -> ((ix + 1 ) /\ a)) arr))
+cons elem (Vect arr) = Vect (List.Cons (0  /\ elem) (map (\(ix /\ a) -> ((ix + 1 ) /\ a)) arr))
 
 snoc ∷
   ∀ len len_plus_1 elem.
@@ -333,7 +339,10 @@ snoc ∷
   Add 1 len len_plus_1 ⇒
   Compare len (-1) GT ⇒
   Vect len elem →  elem → Vect len_plus_1 elem
-snoc (Vect xs) elem = Vect $ Array.snoc xs (toInt (Proxy :: _ len) /\ elem)
+-- we use cons to represent that this is a newer value
+-- this will often cause a duplicate, but we don't care
+-- as we weed out duplicates during traversals
+snoc (Vect xs) elem = Vect $ List.Cons (toInt (Proxy :: _ len) /\ elem) xs
 
 infixr 6 cons as :
 infixr 6 index as !!

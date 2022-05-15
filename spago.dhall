@@ -5,6 +5,7 @@
   , "effect"
   , "filterable"
   , "foldable-traversable"
+  , "lists"
   , "maybe"
   , "ordered-collections"
   , "prelude"
@@ -15,7 +16,7 @@
   , "unfoldable"
   ]
 , packages = ./packages.dhall
-, sources = [ "src/**/*.purs"]
+, sources = [ "src/**/*.purs" ]
 , license = "MIT-0"
 , repository = "https://github.com/sigma-andex/purescript-fast-vect.git"
 }
