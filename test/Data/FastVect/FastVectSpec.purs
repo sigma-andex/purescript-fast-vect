@@ -3,9 +3,9 @@ module Data.FastVect.FastVectSpec where
 import Data.FastVect.FastVect
 
 import Data.Maybe (Maybe(..))
-import Prelude (Unit, discard, pure, unit, ($))
+import Prelude (Unit, discard, pure, unit)
 import Test.Spec (Spec, describe, it)
-import Test.Spec.Assertions (expectError, shouldEqual)
+import Test.Spec.Assertions (shouldEqual)
 
 spec ∷ Spec Unit
 spec =
@@ -27,7 +27,7 @@ spec =
         actualFail2 `shouldEqual` Nothing
 
       it "should successfully acccess elements from a Vect" do
-        let 
+        let
           vect = 1 : 2 : 3 : 4 : empty
         (head vect) `shouldEqual` 1
         --(head empty) `shouldEqual` 1 -- should not compile
@@ -62,4 +62,3 @@ spec =
         (toArray actualDrop) `shouldEqual` expectedDrop
         (toArray actualEqual) `shouldEqual` expectedEqual
         (toArray actualPadM) `shouldEqual` expectedPadM
-

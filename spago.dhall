@@ -8,7 +8,6 @@
   , "prelude"
   , "spec"
   , "spec-discovery"
-  , "typelevel-arithmetic"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
