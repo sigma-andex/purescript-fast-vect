@@ -23,17 +23,19 @@ module Data.FastVect.Sparse.Read
 import Prelude
 
 import Data.Array as Array
+import Data.FastVect.Common as Common
 import Data.Filterable (filterMap)
 import Data.Foldable (class Foldable)
 import Data.FoldableWithIndex (class FoldableWithIndex)
-import Data.FastVect.Common as Common
 import Data.FunctorWithIndex (class FunctorWithIndex)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
+import Data.Profunctor.Strong (first)
 import Data.Reflectable (class Reflectable)
 import Data.Traversable (class Traversable)
 import Data.TraversableWithIndex (class TraversableWithIndex)
+import Data.Tuple (fst)
 import Data.Tuple.Nested ((/\))
 import Data.Unfoldable (unfoldr)
 import Prim.Int (class Compare)
@@ -116,7 +118,7 @@ singleton elem = Vect (Map.singleton 0 elem)
 -- -- | cs = append as bs
 -- -- | ```
 append ∷ ∀ m n m_plus_n elem. Common.Append Vect m n m_plus_n elem
-append (Vect xs) (Vect ys) = Vect (Map.union xs (Map.fromFoldable $ map (\(ix /\ a) -> ((ix + (Common.toInt (Proxy :: _ m))) /\ a)) $ (Map.toUnfoldableUnordered :: _ -> Array _) ys))
+append (Vect xs) (Vect ys) = Vect (Map.union xs (Map.fromFoldable $ map (first (add (Common.toInt (Proxy :: _ m)))) $ (Map.toUnfoldableUnordered :: _ -> Array _) ys))
 
 -- -- | Safely drop `m` elements from a `Vect`.
 -- -- | Will result in a compile-time error if you are trying to drop more elements than exist in the vector.
@@ -144,7 +146,7 @@ drop proxy (Vect xs) = Vect ((Map.fromFoldable :: Array _ -> _) $ filterMap (\(i
 -- -- | newVect = take (Common.term ∷ _ 100) vect
 -- -- | ```
 take ∷ ∀ m n m_plus_n elem. Common.Take Vect m n m_plus_n elem
-take proxy (Vect xs) = Vect (Map.fromFoldable $ Array.filter (\(ix /\ _) -> ix < takes) $ Map.toUnfoldableUnordered xs)
+take proxy (Vect xs) = Vect (Map.fromFoldable $ Array.filter (fst >>> (_ < takes)) $ Map.toUnfoldableUnordered xs)
   where
   takes = Common.toInt proxy
 
@@ -185,7 +187,7 @@ set proxy a (Vect xs) = Vect $ Map.alter (const (Just a)) (Common.toInt proxy) x
 -- -- | split = splitAt (Common.term ∷ _ 3) vect
 -- -- | ```
 splitAt ∷ ∀ m n m_plus_n elem. Common.SplitAt Vect m n m_plus_n elem
-splitAt proxy (Vect xs) = ((\{ yes, no } -> { before: Vect $ Map.fromFoldable yes, after: Vect $ Map.fromFoldable no }) $ Array.partition (\(ix /\ _) -> ix < splits) $ Map.toUnfoldableUnordered xs)
+splitAt proxy (Vect xs) = ((\{ yes, no } -> { before: Vect $ Map.fromFoldable yes, after: Vect $ Map.fromFoldable no }) $ Array.partition (fst >>> (_ < splits)) $ Map.toUnfoldableUnordered xs)
   where
   splits = Common.toInt proxy
 
@@ -255,7 +257,7 @@ toMap (Vect arr) = arr
 -- -- | Attaches an element to the front of the `Vect`, creating a new `Vect` with size incremented.
 -- -- |
 cons ∷ ∀ len len_plus_1 elem. Common.Cons Vect len len_plus_1 elem
-cons elem (Vect arr) = Vect (Map.insert 0 elem (Map.fromFoldable $ map (\(ix /\ a) -> ((ix + 1) /\ a)) $ (Map.toUnfoldableUnordered :: _ -> Array _) arr))
+cons elem (Vect arr) = Vect (Map.insert 0 elem (Map.fromFoldable $ map (first (add 1)) $ (Map.toUnfoldableUnordered :: _ -> Array _) arr))
 
 snoc
   ∷ ∀ len len_plus_1 elem. Common.Snoc Vect len len_plus_1 elem

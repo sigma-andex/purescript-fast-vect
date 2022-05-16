@@ -7,6 +7,7 @@
   , "maybe"
   , "ordered-collections"
   , "prelude"
+  , "profunctor"
   , "tuples"
   , "unfoldable"
   ]
