@@ -1,16 +1,12 @@
 { name = "fast-vect"
 , dependencies =
-  [ "aff"
-  , "arrays"
-  , "effect"
+  [ "arrays"
   , "filterable"
   , "foldable-traversable"
   , "lists"
   , "maybe"
   , "ordered-collections"
   , "prelude"
-  , "spec"
-  , "spec-discovery"
   , "tuples"
   , "unfoldable"
   ]
