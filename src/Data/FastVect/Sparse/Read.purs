@@ -170,7 +170,7 @@ modify proxy f (Vect xs) = Vect $ Map.update (f >>> Just) (Common.toInt proxy) x
 -- -- | newVect = modify (Common.term ∷ _ 100) "b" vect
 -- -- | `
 set ∷ ∀ m n elem. Common.Set Vect m n elem
-set proxy = modify proxy <<< const
+set proxy a (Vect xs) = Vect $ Map.alter (const (Just a)) (Common.toInt proxy) xs
 
 -- -- | Split the `Vect` into two sub vectors `before` and `after`, where before contains up to `m` elements.
 -- -- |
