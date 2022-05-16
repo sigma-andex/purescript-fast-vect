@@ -20,12 +20,14 @@ module Data.FastVect.Common
   , Zero
   , NegOne
   , One
+  , class IsVect
   , term
   , toInt
   ) where
 
 import Data.Maybe (Maybe)
 import Data.Reflectable (class Reflectable, reflectType)
+import Data.TraversableWithIndex (class TraversableWithIndex)
 import Prim.Int (class Add, class Compare)
 import Prim.Ordering (GT, LT)
 import Type.Proxy (Proxy(..))
@@ -33,6 +35,8 @@ import Type.Proxy (Proxy(..))
 type Zero = 0
 type One = 1
 type NegOne = -1
+
+class TraversableWithIndex Int f <= IsVect f
 
 term ∷ forall (i ∷ Int). Proxy i
 term = Proxy

@@ -266,3 +266,5 @@ snoc (Vect xs) elem = Vect $ Map.insert (Common.toInt (Proxy :: _ len)) elem xs
 infixr 6 cons as :
 infixr 6 index as !!
 infixr 6 indexModulo as !%
+
+instance Common.IsVect (Vect n)

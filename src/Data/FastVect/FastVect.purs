@@ -293,3 +293,5 @@ reifyVect
   → (∀ len. Vect len elem → r)
   → r
 reifyVect arr f = f (Vect arr)
+
+instance Common.IsVect (Vect n)

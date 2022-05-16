@@ -338,3 +338,5 @@ snoc (Vect xs) elem = Vect $ List.Cons { ix: Common.toInt (Proxy :: _ len), elem
 infixr 6 cons as :
 infixr 6 index as !!
 infixr 6 indexModulo as !%
+
+instance Common.IsVect (Vect n)
