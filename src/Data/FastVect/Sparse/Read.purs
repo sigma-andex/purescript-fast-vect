@@ -2,6 +2,7 @@ module Data.FastVect.Sparse.Read
   ( Vect
   , replicate
   , empty
+  , sparse
   , singleton
   , append
   , drop
@@ -83,6 +84,15 @@ replicate proxy elem = Vect $ (Map.fromFoldable :: Array _ -> _) $ (unfoldr (\i@
 -- -- | ```
 empty ∷ ∀ elem. Common.Empty Vect elem
 empty = Vect (Map.empty)
+
+-- -- | Creates the sparse `Vect`.
+-- -- |
+-- -- | ```
+-- -- | vect ∷ Vect 40 String
+-- -- | vect = sparse
+-- -- | ```
+sparse ∷ ∀ elem n. Common.Sparse Vect elem n
+sparse = Vect (Map.empty)
 
 -- -- | Create a `Vect` of one element.
 -- -- |

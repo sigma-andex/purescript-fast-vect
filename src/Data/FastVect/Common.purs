@@ -1,6 +1,7 @@
 module Data.FastVect.Common
   ( Replicate
   , Empty
+  , Sparse
   , Singleton
   , Append
   , Drop
@@ -60,6 +61,15 @@ type Replicate vect len elem =
 -- -- | ```
 type Empty :: forall k1 k2. (Int -> k1 -> k2) -> k1 -> k2
 type Empty vect elem = vect Zero elem
+
+-- -- | Creates the sparse `Vect`.
+-- -- |
+-- -- | ```
+-- -- | vect ∷ Vect 40 String
+-- -- | vect = sparse
+-- -- | ```
+type Sparse :: forall k1 k2 k3. (k1 -> k2 -> k3) -> k1 -> k2 -> k3
+type Sparse vect n elem = vect n elem
 
 -- -- | Create a `Vect` of one element.
 -- -- |

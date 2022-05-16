@@ -2,6 +2,7 @@ module Data.FastVect.Sparse.Write
   ( Vect
   , replicate
   , empty
+  , sparse
   , singleton
   , append
   , drop
@@ -147,6 +148,15 @@ replicate proxy elem = Vect $ (unfoldr (\i@{ ix } -> if ix == terminus then Noth
 -- -- | ```
 empty ∷ ∀ elem. Common.Empty Vect elem
 empty = Vect List.Nil
+
+-- -- | Creates the sparse `Vect`.
+-- -- |
+-- -- | ```
+-- -- | vect ∷ Vect 40 String
+-- -- | vect = sparse
+-- -- | ```
+sparse ∷ ∀ elem n. Common.Sparse Vect elem n
+sparse = Vect List.Nil
 
 -- -- | Create a `Vect` of one element.
 -- -- |
