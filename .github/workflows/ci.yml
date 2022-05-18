@@ -35,5 +35,5 @@ jobs:
       - run: spago build
 
       - run: |
-          npm install
-          spago -x test.dhall test
+          npm ci
+          npm t
