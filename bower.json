@@ -15,9 +15,14 @@
     ],
     "dependencies": {
         "purescript-arrays": "^v7.0.0",
+        "purescript-filterable": "^v5.0.0",
         "purescript-foldable-traversable": "^v6.0.0",
+        "purescript-lists": "^v7.0.0",
         "purescript-maybe": "^v6.0.0",
-        "purescript-partial": "^v4.0.0",
-        "purescript-prelude": "^v6.0.0"
+        "purescript-ordered-collections": "^v3.0.0",
+        "purescript-prelude": "^v6.0.0",
+        "purescript-profunctor": "^v6.0.0",
+        "purescript-tuples": "^v7.0.0",
+        "purescript-unfoldable": "^v6.0.0"
     }
 }
