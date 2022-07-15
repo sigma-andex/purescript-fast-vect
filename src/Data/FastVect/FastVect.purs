@@ -72,8 +72,8 @@ derive newtype instance TraversableWithIndex Int (Vect len)
 -- -- | vect ∷ Vect 300 String
 -- -- | vect = replicate (Common.term ∷ _ 300) "a"
 -- -- | ```
-replicate ∷ ∀ len elem. Common.Replicate Vect len elem
-replicate proxy elem = Vect $ A.replicate (Common.toInt proxy) elem
+replicate ∷ ∀ @len elem. Common.Replicate Vect len elem
+replicate elem = Vect $ A.replicate (Common.toInt (Proxy :: _ len)) elem
 
 -- -- | Creates the empty `Vect`.
 -- -- |

@@ -53,9 +53,8 @@ toInt = reflectType
 type Replicate vect len elem =
   Compare len NegOne GT
   ⇒ Reflectable len Int
-  ⇒ Proxy len
-  → elem
-  → vect len elem
+  ⇒ elem
+  → vect @len elem
 
 -- -- | Creates the empty `Vect`.
 -- -- |
