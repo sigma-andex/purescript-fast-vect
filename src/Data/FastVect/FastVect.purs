@@ -49,7 +49,7 @@ newtype Vect ∷ Int → Type → Type
 newtype Vect len elem = Vect (Array elem)
 
 instance (Show elem, Reflectable len Int) ⇒ Show (Vect len elem) where
-  show (Vect elems) = "Vect " <> show (Common.toInt (Common.term ∷ _ len)) <> " " <> show elems
+  show (Vect elems) = "Vect " <> show (Common.toInt @len) <> " " <> show elems
 
 derive newtype instance Eq elem ⇒ Eq (Vect len elem)
 derive newtype instance Ord elem ⇒ Ord (Vect len elem)
@@ -58,7 +58,7 @@ instance Apply (Vect len) where
   apply (Vect fab) (Vect a) = Vect (Array.zipWith ($) fab a)
 
 instance (Compare len Common.NegOne GT, Reflectable len Int) ⇒ Applicative (Vect len) where
-  pure = replicate (Proxy :: _ len)
+  pure = replicate @len
 
 derive newtype instance FunctorWithIndex Int (Vect len)
 derive newtype instance Foldable (Vect len)
@@ -73,7 +73,7 @@ derive newtype instance TraversableWithIndex Int (Vect len)
 -- -- | vect = replicate (Common.term ∷ _ 300) "a"
 -- -- | ```
 replicate ∷ ∀ @len elem. Common.Replicate Vect len elem
-replicate elem = Vect $ A.replicate (Common.toInt (Proxy :: _ len)) elem
+replicate elem = Vect $ A.replicate (Common.toInt @len) elem
 
 -- -- | Creates the empty `Vect`.
 -- -- |
@@ -118,8 +118,8 @@ append (Vect xs) (Vect ys) = Vect (xs <> ys)
 -- -- | newVect ∷ Vect 200 String
 -- -- | newVect = drop (Common.term ∷ _ 100) vect
 -- -- | ```
-drop ∷ ∀ m n m_plus_n elem. Common.Drop Vect m n m_plus_n elem
-drop proxy (Vect xs) = Vect (A.drop (Common.toInt proxy) xs)
+drop ∷ ∀ @m n m_plus_n elem. Common.Drop Vect m n m_plus_n elem
+drop (Vect xs) = Vect (A.drop (Common.toInt @m) xs)
 
 -- -- | Safely take `m` elements from a `Vect`.
 -- -- | Will result in a compile-time error if you are trying to take more elements than exist in the vector.
@@ -131,8 +131,8 @@ drop proxy (Vect xs) = Vect (A.drop (Common.toInt proxy) xs)
 -- -- | newVect ∷ Vect 100 String
 -- -- | newVect = take (Common.term ∷ _ 100) vect
 -- -- | ```
-take ∷ ∀ m n m_plus_n elem. Common.Take Vect m n m_plus_n elem
-take proxy (Vect xs) = Vect (A.take (Common.toInt proxy) xs)
+take ∷ ∀ @m n m_plus_n elem. Common.Take Vect m n m_plus_n elem
+take (Vect xs) = Vect (A.take (Common.toInt @m) xs)
 
 foreign import modifyImpl :: forall n elem. Int → (elem → elem) → Vect n elem → Vect n elem
 
@@ -145,8 +145,8 @@ foreign import modifyImpl :: forall n elem. Int → (elem → elem) → Vect n e
 -- -- | newVect ∷ Vect 100 String
 -- -- | newVect = modify (Common.term ∷ _ 100) (append "b") vect
 -- -- | ```
-modify ∷ ∀ m n elem. Common.Modify Vect m n elem
-modify proxy = modifyImpl (Common.toInt proxy)
+modify ∷ ∀ @m n elem. Common.Modify Vect m n elem
+modify = modifyImpl (Common.toInt @m)
 
 -- -- | Safely set element `m` from a `Vect`.
 -- -- |
@@ -158,7 +158,7 @@ modify proxy = modifyImpl (Common.toInt proxy)
 -- -- | newVect = modify (Common.term ∷ _ 100) "b" vect
 -- -- | `
 set ∷ ∀ m n elem. Common.Set Vect m n elem
-set proxy = modify proxy <<< const
+set = modify @m <<< const
 
 -- -- | Split the `Vect` into two sub vectors `before` and `after`, where before contains up to `m` elements.
 -- -- |
@@ -172,10 +172,10 @@ set proxy = modify proxy <<< const
 -- -- |   }
 -- -- | split = splitAt (Common.term ∷ _ 3) vect
 -- -- | ```
-splitAt ∷ ∀ m n m_plus_n elem. Common.SplitAt Vect m n m_plus_n elem
-splitAt proxy (Vect xs) = { before: Vect before, after: Vect after }
+splitAt ∷ ∀ @m n m_plus_n elem. Common.SplitAt Vect m n m_plus_n elem
+splitAt (Vect xs) = { before: Vect before, after: Vect after }
   where
-  { before, after } = A.splitAt (Common.toInt proxy) xs
+  { before, after } = A.splitAt (Common.toInt @m) xs
 
 -- -- | Safely access the `n`-th modulo m element of a `Vect`.
 -- -- |
@@ -187,7 +187,7 @@ splitAt proxy (Vect xs) = { before: Vect before, after: Vect after }
 -- -- | elem = indexModulo 5352523 vect
 -- -- | ```
 indexModulo ∷ ∀ m elem. Common.IndexModulo Vect m elem
-indexModulo i = indexImpl (i `mod` Common.toInt (Proxy ∷ _ m))
+indexModulo i = indexImpl (i `mod` Common.toInt @m)
 
 foreign import indexImpl :: forall m elem. Int → Vect m elem → elem
 
@@ -200,8 +200,8 @@ foreign import indexImpl :: forall m elem. Int → Vect m elem → elem
 -- -- | elem ∷ String
 -- -- | elem = index (Common.term ∷ _ 299) vect
 -- -- | ```
-index ∷ ∀ m m_minus_one i n elem. Common.Index Vect m m_minus_one i n elem
-index = indexImpl <<< Common.toInt
+index ∷ ∀ m m_minus_one @i n elem. Common.Index Vect m m_minus_one i n elem
+index = indexImpl (Common.toInt @i)
 
 -- -- | Safely access the head of a `Vect`.
 -- -- |
@@ -223,14 +223,13 @@ head = indexImpl 0
 -- -- | fromArray (Common.term ∷ _ 4) ["a", "b", "c"] = Nothing
 -- -- | ```
 fromArray
-  ∷ ∀ len elem
+  ∷ ∀ @len elem
   . Reflectable len Int
   ⇒ Compare len Common.NegOne GT
-  ⇒ Proxy len
-  → Array elem
+  ⇒ Array elem
   → Maybe (Vect len elem)
-fromArray proxy array | Array.length array == Common.toInt proxy = Just (Vect array)
-fromArray _ _ = Nothing
+fromArray array | Array.length array == Common.toInt @len = Just (Vect array)
+fromArray _ = Nothing
 
 -- -- | Converts the `Vect` to an `Array`, effectively dropping the size information.
 toArray
@@ -248,28 +247,26 @@ toArray (Vect arr) = arr
 -- -- | toArray $ adjust (Common.term ∷ _ 3) 0 [ 0, 0, 0, 0, 1, 2, 3 ] == [ 1, 2, 3 ]
 -- -- | ```
 adjust
-  ∷ ∀ len elem
+  ∷ ∀ @len elem
   . Reflectable len Int
   ⇒ Compare len Common.NegOne GT
-  ⇒ Proxy len
-  → elem
+  ⇒ elem
   → Array elem
   → Vect len elem
-adjust proxy elem array = case Array.length array - Common.toInt proxy of
+adjust elem array = case Array.length array - Common.toInt @len of
   0 → Vect array
   len | len < 0 → Vect $ A.replicate (abs len) elem <> array
   len → Vect $ A.drop len array
 
 -- -- | Like `adjust` but uses the Moinoid instance of elem to create the elements.
 adjustM
-  ∷ ∀ len elem
+  ∷ ∀ @len elem
   . Monoid elem
   ⇒ Reflectable len Int
   ⇒ Compare len Common.NegOne GT
-  ⇒ Proxy len
-  → Array elem
+  ⇒ Array elem
   → Vect len elem
-adjustM proxy = adjust proxy mempty
+adjustM = adjust @len mempty
 
 -- -- | Attaches an element to the front of the `Vect`, creating a new `Vect` with size incremented.
 -- -- |
