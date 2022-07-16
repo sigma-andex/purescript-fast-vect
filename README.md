@@ -2,7 +2,9 @@
 
 Fast, type-safe vector libary for Purescript inspired by [Idris](https://www.idris-lang.org/). A vector is list with its size encoded in the type.
 
-![demo of purescript fast-vect](./purescript-vect.gif)
+https://user-images.githubusercontent.com/77549848/179352478-36ddb5ee-dc51-4d53-ad5c-19b244cd2f7b.mp4
+
+
 
 ## Installation
 
@@ -92,3 +94,4 @@ big :: Vect 203948047908088915095071006 String
 big = FV.append big1 big2
 -- Note: the big example will blow up during runtime. Need to increase Node.js memory for this ;)
 ```
+
