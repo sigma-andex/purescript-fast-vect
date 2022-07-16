@@ -23,14 +23,14 @@ spec =
         it "should create a Vect from an Array" do
           let
             actualSuccess ∷ Maybe (FV.Vect 3 String)
-            actualSuccess = FV.fromArray (C.term ∷ _ 3) [ "a", "b", "c" ]
+            actualSuccess = FV.fromArray @3 [ "a", "b", "c" ]
 
             expectedSuccess = FV.append (FV.singleton "a") (FV.append (FV.singleton "b") (FV.singleton "c"))
             actualFail1 ∷ Maybe (FV.Vect 4 String)
-            actualFail1 = FV.fromArray (C.term ∷ _ 4) [ "a", "b", "c" ]
+            actualFail1 = FV.fromArray @4 [ "a", "b", "c" ]
 
             actualFail2 ∷ Maybe (FV.Vect 2 String)
-            actualFail2 = FV.fromArray (C.term ∷ _ 2) [ "a", "b", "c" ]
+            actualFail2 = FV.fromArray @2 [ "a", "b", "c" ]
           actualSuccess `shouldEqual` (Just expectedSuccess)
           actualFail1 `shouldEqual` Nothing
           actualFail2 `shouldEqual` Nothing
@@ -41,34 +41,34 @@ spec =
           (foldl (+) 0 vect) `shouldEqual` 10
           (FV.head vect) `shouldEqual` 1
           --(head empty) `shouldEqual` 1 -- should not compile
-          (FV.index (C.term :: _ 0) vect) `shouldEqual` 1
-          (FV.index (C.term :: _ 3) vect) `shouldEqual` 4
-          (FV.modify (C.term :: _ 3) (add 100) vect) `shouldEqual` (FV.cons 1 $ FV.cons 2 $ FV.cons 3 $ FV.cons 104 FV.empty)
+          (FV.index @0 vect) `shouldEqual` 1
+          (FV.index @3 vect) `shouldEqual` 4
+          (FV.modify @3 (add 100) vect) `shouldEqual` (FV.cons 1 $ FV.cons 2 $ FV.cons 3 $ FV.cons 104 FV.empty)
           --(index (term :: _ 4) vect) `shouldEqual` 1 -- should not compile
 
-          (FV.drop (C.term :: _ 4) vect) `shouldEqual` FV.empty
-          (FV.drop (C.term :: _ 3) vect) `shouldEqual` (FV.singleton 4)
+          (FV.drop @4 vect) `shouldEqual` FV.empty
+          (FV.drop @3 vect) `shouldEqual` (FV.singleton 4)
           --(drop (term :: _ 5) vect) `shouldEqual` (singleton 4) -- should not compile
 
-          (FV.take (C.term :: _ 4) vect) `shouldEqual` vect
-          (FV.take (C.term :: _ 3) vect) `shouldEqual` (FV.cons 1 $ FV.cons 2 $ FV.cons 3 FV.empty)
+          (FV.take @4 vect) `shouldEqual` vect
+          (FV.take @3 vect) `shouldEqual` (FV.cons 1 $ FV.cons 2 $ FV.cons 3 FV.empty)
           --let _ = (take (term :: _ 5) vect) -- should not compile
           pure unit
         it "should adjust an Array to a Vect" do
           let
             expectedPad = [ 0, 0, 0, 0, 0, 0, 0, 1, 2, 3 ]
 
-            actualPad = FV.adjust (C.term ∷ _ 10) 0 [ 1, 2, 3 ]
+            actualPad = FV.adjust @10 0 [ 1, 2, 3 ]
 
             expectedDrop = [ 1, 2, 3 ]
 
-            actualDrop = FV.adjust (C.term ∷ _ 3) 0 [ 0, 0, 0, 0, 1, 2, 3 ]
+            actualDrop = FV.adjust @3 0 [ 0, 0, 0, 0, 1, 2, 3 ]
 
             expectedEqual = [ 1, 2, 3, 4, 5 ]
-            actualEqual = FV.adjust (C.term ∷ _ 5) 0 [ 1, 2, 3, 4, 5 ]
+            actualEqual = FV.adjust @5 0 [ 1, 2, 3, 4, 5 ]
 
             expectedPadM = [ "", "", "", "", "a", "b", "c" ]
-            actualPadM = FV.adjustM (C.term ∷ _ 7) [ "a", "b", "c" ]
+            actualPadM = FV.adjustM @7 [ "a", "b", "c" ]
           (FV.toArray actualPad) `shouldEqual` expectedPad
           (FV.toArray actualDrop) `shouldEqual` expectedDrop
           (FV.toArray actualEqual) `shouldEqual` expectedEqual
@@ -86,14 +86,14 @@ spec =
         it "should create a Vect from an Array" do
           let
             actualSuccess ∷ Maybe (FVR.Vect 3 String)
-            actualSuccess = FVR.fromMap (C.term ∷ _ 3) $ Map.fromFoldable [ 0 /\ "a", 2 /\ "b", 1 /\ "c" ]
+            actualSuccess = FVR.fromMap @3 $ Map.fromFoldable [ 0 /\ "a", 2 /\ "b", 1 /\ "c" ]
 
             expectedSuccess = FVR.append (FVR.singleton "a") (FVR.append (FVR.singleton "c") (FVR.singleton "b"))
             actualFail1 ∷ Maybe (FVR.Vect 4 String)
-            actualFail1 = FVR.fromMap (C.term ∷ _ 4) $ Map.fromFoldable [ 0 /\ "a", 22 /\ "b"]
+            actualFail1 = FVR.fromMap @4 $ Map.fromFoldable [ 0 /\ "a", 22 /\ "b"]
 
             actualFail2 ∷ Maybe (FVR.Vect 2 String)
-            actualFail2 = FVR.fromMap (C.term ∷ _ 2) $ Map.fromFoldable [ 0 /\ "a", 52 /\ "b" ]
+            actualFail2 = FVR.fromMap @2 $ Map.fromFoldable [ 0 /\ "a", 52 /\ "b" ]
           actualSuccess `shouldEqual` (Just expectedSuccess)
           actualFail1 `shouldEqual` Nothing
           actualFail2 `shouldEqual` Nothing
@@ -104,17 +104,17 @@ spec =
           (foldl (+) 0 vect) `shouldEqual` 10
           (FVR.head vect) `shouldEqual` (Just 1)
           --(head empty) `shouldEqual` 1 -- should not compile
-          (FVR.index (C.term :: _ 0) vect) `shouldEqual` (Just 1)
-          (FVR.index (C.term :: _ 3) vect) `shouldEqual` (Just 4)
-          (FVR.modify (C.term :: _ 3) (add 100) vect) `shouldEqual` (FVR.cons 1 $ FVR.cons 2 $ FVR.cons 3 $ FVR.cons 104 FVR.empty)
+          (FVR.index @0 vect) `shouldEqual` (Just 1)
+          (FVR.index @3 vect) `shouldEqual` (Just 4)
+          (FVR.modify @3 (add 100) vect) `shouldEqual` (FVR.cons 1 $ FVR.cons 2 $ FVR.cons 3 $ FVR.cons 104 FVR.empty)
           --(index (term :: _ 4) vect) `shouldEqual` 1 -- should not compile
 
-          (FVR.drop (C.term :: _ 4) vect) `shouldEqual` FVR.empty
-          (FVR.drop (C.term :: _ 3) vect) `shouldEqual` (FVR.singleton 4)
+          (FVR.drop @4 vect) `shouldEqual` FVR.empty
+          (FVR.drop @3 vect) `shouldEqual` (FVR.singleton 4)
           --(drop (term :: _ 5) vect) `shouldEqual` (singleton 4) -- should not compile
 
-          (FVR.take (C.term :: _ 4) vect) `shouldEqual` vect
-          (FVR.take (C.term :: _ 3) vect) `shouldEqual` (FVR.cons 1 $ FVR.cons 2 $ FVR.cons 3 FVR.empty)
+          (FVR.take @4 vect) `shouldEqual` vect
+          (FVR.take @3 vect) `shouldEqual` (FVR.cons 1 $ FVR.cons 2 $ FVR.cons 3 FVR.empty)
           --let _ = (take (term :: _ 5) vect) -- should not compile
           pure unit
         it "should apply" do
@@ -130,14 +130,14 @@ spec =
         it "should create a Vect from an Array" do
           let
             actualSuccess ∷ Maybe (FVW.Vect 3 String)
-            actualSuccess = FVW.fromMap (C.term ∷ _ 3) $ Map.fromFoldable [ 0 /\ "a", 2 /\ "b", 1 /\ "c" ]
+            actualSuccess = FVW.fromMap @3 $ Map.fromFoldable [ 0 /\ "a", 2 /\ "b", 1 /\ "c" ]
 
             expectedSuccess = FVW.append (FVW.singleton "a") (FVW.append (FVW.singleton "c") (FVW.singleton "b"))
             actualFail1 ∷ Maybe (FVW.Vect 4 String)
-            actualFail1 = FVW.fromMap (C.term ∷ _ 4) $ Map.fromFoldable [ 0 /\ "a", 22 /\ "b"]
+            actualFail1 = FVW.fromMap @4 $ Map.fromFoldable [ 0 /\ "a", 22 /\ "b"]
 
             actualFail2 ∷ Maybe (FVW.Vect 2 String)
-            actualFail2 = FVW.fromMap (C.term ∷ _ 2) $ Map.fromFoldable [ 0 /\ "a", 52 /\ "b" ]
+            actualFail2 = FVW.fromMap @2 $ Map.fromFoldable [ 0 /\ "a", 52 /\ "b" ]
           actualSuccess `shouldEqual` (Just expectedSuccess)
           actualFail1 `shouldEqual` Nothing
           actualFail2 `shouldEqual` Nothing
@@ -146,22 +146,22 @@ spec =
           let
             vect = FVW.cons 1 $ FVW.cons 2 $ FVW.cons 3 $ FVW.cons 4 FVW.empty
           (foldl (+) 0 vect) `shouldEqual` 10
-          (foldl (+) 0 (FVW.set (Proxy :: _ 0) 101 vect)) `shouldEqual` 110
+          (foldl (+) 0 (FVW.set @0 101 vect)) `shouldEqual` 110
           (traverse Just vect) `shouldEqual` Just vect
-          (traverse Just $ (FVW.set (Proxy :: _ 0) 101 vect)) `shouldEqual` Just (FVW.set (Proxy :: _ 0) 101 vect)
+          (traverse Just $ (FVW.set @0 101 vect)) `shouldEqual` Just (FVW.set @0 101 vect)
           (FVW.head vect) `shouldEqual` (Just 1)
           --(head empty) `shouldEqual` 1 -- should not compile
-          (FVW.index (C.term :: _ 0) vect) `shouldEqual` (Just 1)
-          (FVW.index (C.term :: _ 3) vect) `shouldEqual` (Just 4)
-          (FVW.modify (C.term :: _ 3) (add 100) vect) `shouldEqual` (FVW.cons 1 $ FVW.cons 2 $ FVW.cons 3 $ FVW.cons 104 FVW.empty)
+          (FVW.index @0 vect) `shouldEqual` (Just 1)
+          (FVW.index @3 vect) `shouldEqual` (Just 4)
+          (FVW.modify @3 (add 100) vect) `shouldEqual` (FVW.cons 1 $ FVW.cons 2 $ FVW.cons 3 $ FVW.cons 104 FVW.empty)
           --(index (term :: _ 4) vect) `shouldEqual` 1 -- should not compile
 
-          (FVW.drop (C.term :: _ 4) vect) `shouldEqual` FVW.empty
-          (FVW.drop (C.term :: _ 3) vect) `shouldEqual` (FVW.singleton 4)
+          (FVW.drop @4 vect) `shouldEqual` FVW.empty
+          (FVW.drop @3 vect) `shouldEqual` (FVW.singleton 4)
           --(drop (term :: _ 5) vect) `shouldEqual` (singleton 4) -- should not compile
 
-          (FVW.take (C.term :: _ 4) vect) `shouldEqual` vect
-          (FVW.take (C.term :: _ 3) vect) `shouldEqual` (FVW.cons 1 $ FVW.cons 2 $ FVW.cons 3 FVW.empty)
+          (FVW.take @4 vect) `shouldEqual` vect
+          (FVW.take @3 vect) `shouldEqual` (FVW.cons 1 $ FVW.cons 2 $ FVW.cons 3 FVW.empty)
           --let _ = (take (term :: _ 5) vect) -- should not compile
           pure unit
         it "should apply" do

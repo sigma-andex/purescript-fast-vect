@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+**Breaking changes**
+- Update to use VTAs
+
 ## [v0.7.0]
 - Add read & write optimised sparse vectors (#10 by @mikesol)
 
