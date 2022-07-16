@@ -2,6 +2,8 @@
 
 Fast, type-safe vector libary for Purescript inspired by [Idris](https://www.idris-lang.org/). A vector is list with its size encoded in the type.
 
+![demo of purescript fast-vect](./purescript-vect.gif)
+
 ## Installation
 
 ```bash
@@ -59,12 +61,11 @@ import Prelude
 
 import Data.FastVect.FastVect (Vect)
 import Data.FastVect.FastVect as FV
-import Typelevel.Arithmetic.Add (Term, term)
 
 as :: Vect 300 String
 as = FV.replicate @300 "a"
--- Note you could also leave out the Term type annotation, as PS can infer it:
--- as = FV.replicate (term :: _ 300) "a"
+-- Note: you can leave out the type annotation, as PS can infer it:
+-- as = FV.replicate @300 "a"
 
 bs :: Vect 200 String
 bs = FV.replicate @200 "b"
@@ -89,5 +90,5 @@ big2 = FV.replicate @203948023984590684596840586 "b"
 
 big :: Vect 203948047908088915095071006 String
 big = FV.append big1 big2
--- Note the big example will blow up during runtime.
+-- Note: the big example will blow up during runtime. Need to increase Node.js memory for this ;)
 ```
