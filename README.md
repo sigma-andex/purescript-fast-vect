@@ -45,7 +45,7 @@ index :: forall i m elem. Term i -> Vect m elem -> elem
 ```
 If the index `i` (represented as a typelevel symbol) is in bounds, i.e. `i < m`, you will get an `elem` back, otherwise you will get a compile-time error. 
 
-Furhter functions that are defined differently to the `Array` functions are:
+Further functions that are defined differently to the `Array` functions are:
 
 * `take` is guaranteed to return you a vector with the number of elements requested and result in a compile-time error if you are trying to request more elements than are in the vector. 
 * `drop` is guaranteed to drop the exact number of elements from the vector and result in a compile-time error if you are trying to drop more elements than exist in the vector.
