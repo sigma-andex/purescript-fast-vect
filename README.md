@@ -2,6 +2,10 @@
 
 Fast, type-safe vector libary for Purescript inspired by [Idris](https://www.idris-lang.org/). A vector is list with its size encoded in the type.
 
+https://user-images.githubusercontent.com/77549848/179352478-36ddb5ee-dc51-4d53-ad5c-19b244cd2f7b.mp4
+
+
+
 ## Installation
 
 ```bash
@@ -41,7 +45,7 @@ You will get an `elem` back, no need to handle a `Maybe`. And this operation is 
 
 Similarly, the `index` function has the following type signature (conceptually - the real one is slightly more complex):
 ```purescript
-index :: forall i m elem. Term i -> Vect m elem -> elem
+index :: forall @i m elem. Vect m elem -> elem
 ```
 If the index `i` (represented as a typelevel symbol) is in bounds, i.e. `i < m`, you will get an `elem` back, otherwise you will get a compile-time error. 
 
@@ -59,35 +63,35 @@ import Prelude
 
 import Data.FastVect.FastVect (Vect)
 import Data.FastVect.FastVect as FV
-import Typelevel.Arithmetic.Add (Term, term)
 
 as :: Vect 300 String
-as = FV.replicate (term :: Term 300) "a"
--- Note you could also leave out the Term type annotation, as PS can infer it:
--- as = FV.replicate (term :: _ 300) "a"
+as = FV.replicate @300 "a"
+-- Note: you can leave out the type annotation, as PS can infer it:
+-- as = FV.replicate @300 "a"
 
 bs :: Vect 200 String
-bs = FV.replicate (term :: Term 200) "b"
+bs = FV.replicate @200 "b"
 
 cs :: Vect 500 String
 cs = FV.append as bs
 
 ds :: Vect 2 String
-ds = cs # FV.drop (term :: Term 299) # FV.take (term :: Term 2)
+ds = cs # FV.drop @299 # FV.take @2
 
 x :: String
-x = FV.index (term :: Term 499) cs
+x = FV.index @499 cs
 
 y :: String
 y = FV.head (FV.singleton "a")
 
 big1 :: Vect 23923498230498230420 String
-big1 = FV.replicate (term :: Term 23923498230498230420) "a"
+big1 = FV.replicate @23923498230498230420 "a"
 
 big2 :: Vect 203948023984590684596840586 String
-big2 = FV.replicate (term :: Term 203948023984590684596840586) "b"
+big2 = FV.replicate @203948023984590684596840586 "b"
 
 big :: Vect 203948047908088915095071006 String
 big = FV.append big1 big2
--- Note the big example will blow up during runtime.
+-- Note: the big example will blow up during runtime. Need to increase Node.js memory for this ;)
 ```
+

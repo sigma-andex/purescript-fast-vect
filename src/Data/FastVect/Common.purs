@@ -41,8 +41,8 @@ class TraversableWithIndex Int f <= IsVect f
 term ∷ forall (i ∷ Int). Proxy i
 term = Proxy
 
-toInt ∷ forall (len ∷ Int). Reflectable len Int ⇒ Proxy len → Int
-toInt = reflectType
+toInt ∷ forall (@len ∷ Int). Reflectable len Int ⇒ Int
+toInt = reflectType (Proxy :: _ len)
 
 -- -- | Create a `Vect` by replicating `len` times the given element
 -- -- |
@@ -53,8 +53,7 @@ toInt = reflectType
 type Replicate vect len elem =
   Compare len NegOne GT
   ⇒ Reflectable len Int
-  ⇒ Proxy len
-  → elem
+  ⇒ elem
   → vect len elem
 
 -- -- | Creates the empty `Vect`.
@@ -121,8 +120,7 @@ type Drop vect m n m_plus_n elem =
   ⇒ Reflectable m Int
   ⇒ Compare m NegOne GT
   ⇒ Compare n NegOne GT
-  ⇒ Proxy m
-  → vect m_plus_n elem
+  ⇒ vect m_plus_n elem
   → vect n elem
 
 -- -- | Safely take `m` elements from a `Vect`.
@@ -141,8 +139,7 @@ type Take vect m n m_plus_n elem =
   ⇒ Reflectable m Int
   ⇒ Compare m NegOne GT
   ⇒ Compare n NegOne GT
-  ⇒ Proxy m
-  → vect m_plus_n elem
+  ⇒ vect m_plus_n elem
   → vect m elem
 
 -- -- | Safely modify element `m` from a `Vect`.
@@ -159,8 +156,7 @@ type Modify vect m n elem =
   ⇒ Compare m NegOne GT
   ⇒ Compare n NegOne GT
   ⇒ Compare m n LT
-  ⇒ Proxy m
-  → (elem → elem)
+  ⇒ (elem → elem)
   → vect n elem
   → vect n elem
 
@@ -178,8 +174,7 @@ type Set vect m n elem =
   ⇒ Compare m NegOne GT
   ⇒ Compare n NegOne GT
   ⇒ Compare m n LT
-  ⇒ Proxy m
-  → elem
+  ⇒ elem
   → vect n elem
   → vect n elem
 
@@ -201,8 +196,7 @@ type SplitAt vect m n m_plus_n elem =
   ⇒ Reflectable m Int
   ⇒ Compare m NegOne GT
   ⇒ Compare n NegOne GT
-  ⇒ Proxy m
-  → vect m_plus_n elem
+  ⇒ vect m_plus_n elem
   → { before ∷ vect m elem, after ∷ vect n elem }
 
 -- -- | Safely access the `n`-th modulo m element of a `Vect`.
@@ -243,8 +237,7 @@ type Index vect m m_minus_one i n elem =
   ⇒ Add i n m_minus_one
   ⇒ Compare i NegOne GT
   ⇒ Reflectable i Int
-  ⇒ Proxy i
-  → vect m elem
+  ⇒ vect m elem
   → elem
 
 type IndexM vect m m_minus_one i n elem =
@@ -254,8 +247,7 @@ type IndexM vect m m_minus_one i n elem =
   ⇒ Add i n m_minus_one
   ⇒ Compare i NegOne GT
   ⇒ Reflectable i Int
-  ⇒ Proxy i
-  → vect m elem
+  ⇒ vect m elem
   → Maybe elem
 -- -- | Safely access the head of a `Vect`.
 -- -- |
