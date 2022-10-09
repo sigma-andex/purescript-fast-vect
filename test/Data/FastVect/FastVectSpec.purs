@@ -7,6 +7,7 @@ import Data.FastVect.Common as C
 import Data.FastVect.Sparse.Read as FVR
 import Data.FastVect.Sparse.Write as FVW
 import Data.Foldable (foldl)
+import Data.Semigroup.Foldable (foldl1, foldr1)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse)
@@ -39,6 +40,8 @@ spec =
           let
             vect = FV.cons 1 $ FV.cons 2 $ FV.cons 3 $ FV.cons 4 FV.empty
           (foldl (+) 0 vect) `shouldEqual` 10
+          (foldl1 (+) vect) `shouldEqual` 10
+          (foldr1 (+) vect) `shouldEqual` 10
           (FV.head vect) `shouldEqual` 1
           --(head empty) `shouldEqual` 1 -- should not compile
           (FV.index (C.term :: _ 0) vect) `shouldEqual` 1
