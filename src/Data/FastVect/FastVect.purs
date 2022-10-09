@@ -14,6 +14,7 @@ module Data.FastVect.FastVect
   , head
   , fromArray
   , toArray
+  , toNonEmptyArray
   , adjust
   , adjustM
   , cons
@@ -26,6 +27,8 @@ import Prelude
 
 import Data.Array as A
 import Data.Array as Array
+import Data.Array.NonEmpty as NEA
+import Data.Array.NonEmpty.Internal (NonEmptyArray(NonEmptyArray))
 import Data.FastVect.Common as Common
 import Data.Foldable (class Foldable)
 import Data.FoldableWithIndex (class FoldableWithIndex)
@@ -33,6 +36,7 @@ import Data.FunctorWithIndex (class FunctorWithIndex)
 import Data.Maybe (Maybe(..))
 import Data.Ord (abs)
 import Data.Reflectable (class Reflectable)
+import Data.Semigroup.Foldable as Foldable1
 import Data.Traversable (class Traversable)
 import Data.TraversableWithIndex (class TraversableWithIndex)
 import Prim.Int (class Compare)
@@ -63,6 +67,12 @@ instance (Compare len Common.NegOne GT, Reflectable len Int) ⇒ Applicative (Ve
 derive newtype instance FunctorWithIndex Int (Vect len)
 derive newtype instance Foldable (Vect len)
 derive newtype instance FoldableWithIndex Int (Vect len)
+
+instance (Compare len Common.Zero GT) ⇒ Foldable1.Foldable1 (Vect len) where
+  foldMap1 f xs = Foldable1.foldMap1 f $ toNonEmptyArray xs
+  foldr1 f xs = Foldable1.foldr1 f $ toNonEmptyArray xs
+  foldl1 f xs = Foldable1.foldl1 f $ toNonEmptyArray xs
+
 derive newtype instance Traversable (Vect len)
 derive newtype instance TraversableWithIndex Int (Vect len)
 
@@ -239,6 +249,14 @@ toArray
   ⇒ Vect len elem
   → Array elem
 toArray (Vect arr) = arr
+
+-- -- | Converts the `Vect` to an `NonEmptyArray`, dropping most of the size information.
+toNonEmptyArray
+  ∷ ∀ len elem
+  . Compare len Common.Zero GT
+  ⇒ Vect len elem
+  → NEA.NonEmptyArray elem
+toNonEmptyArray (Vect arr) = NonEmptyArray arr
 
 -- -- | Creates a `Vect` by adjusting the given `Array`, padding with the provided element if the array is to small or dropping elements if the array is to big.
 -- -- |
