@@ -25,7 +25,6 @@ module Data.FastVect.FastVect
 
 import Prelude
 
-import Data.Array as A
 import Data.Array as Array
 import Data.Array.NonEmpty as NEA
 import Data.Array.NonEmpty.Internal (NonEmptyArray(NonEmptyArray))
@@ -83,7 +82,7 @@ derive newtype instance TraversableWithIndex Int (Vect len)
 -- -- | vect = replicate (Common.term ∷ _ 300) "a"
 -- -- | ```
 replicate ∷ ∀ len elem. Common.Replicate Vect len elem
-replicate proxy elem = Vect $ A.replicate (Common.toInt proxy) elem
+replicate proxy elem = Vect $ Array.replicate (Common.toInt proxy) elem
 
 -- -- | Creates the empty `Vect`.
 -- -- |
@@ -129,7 +128,7 @@ append (Vect xs) (Vect ys) = Vect (xs <> ys)
 -- -- | newVect = drop (Common.term ∷ _ 100) vect
 -- -- | ```
 drop ∷ ∀ m n m_plus_n elem. Common.Drop Vect m n m_plus_n elem
-drop proxy (Vect xs) = Vect (A.drop (Common.toInt proxy) xs)
+drop proxy (Vect xs) = Vect (Array.drop (Common.toInt proxy) xs)
 
 -- -- | Safely take `m` elements from a `Vect`.
 -- -- | Will result in a compile-time error if you are trying to take more elements than exist in the vector.
@@ -142,7 +141,7 @@ drop proxy (Vect xs) = Vect (A.drop (Common.toInt proxy) xs)
 -- -- | newVect = take (Common.term ∷ _ 100) vect
 -- -- | ```
 take ∷ ∀ m n m_plus_n elem. Common.Take Vect m n m_plus_n elem
-take proxy (Vect xs) = Vect (A.take (Common.toInt proxy) xs)
+take proxy (Vect xs) = Vect (Array.take (Common.toInt proxy) xs)
 
 foreign import modifyImpl :: forall n elem. Int → (elem → elem) → Vect n elem → Vect n elem
 
@@ -185,7 +184,7 @@ set proxy = modify proxy <<< const
 splitAt ∷ ∀ m n m_plus_n elem. Common.SplitAt Vect m n m_plus_n elem
 splitAt proxy (Vect xs) = { before: Vect before, after: Vect after }
   where
-  { before, after } = A.splitAt (Common.toInt proxy) xs
+  { before, after } = Array.splitAt (Common.toInt proxy) xs
 
 -- -- | Safely access the `n`-th modulo m element of a `Vect`.
 -- -- |
@@ -275,8 +274,8 @@ adjust
   → Vect len elem
 adjust proxy elem array = case Array.length array - Common.toInt proxy of
   0 → Vect array
-  len | len < 0 → Vect $ A.replicate (abs len) elem <> array
-  len → Vect $ A.drop len array
+  len | len < 0 → Vect $ Array.replicate (abs len) elem <> array
+  len → Vect $ Array.drop len array
 
 -- -- | Like `adjust` but uses the Moinoid instance of elem to create the elements.
 adjustM
@@ -293,13 +292,13 @@ adjustM proxy = adjust proxy mempty
 -- -- |
 -- -- | Note, the running time of this function is `O(n)`.
 cons ∷ ∀ len len_plus_1 elem. Common.Cons Vect len len_plus_1 elem
-cons elem (Vect arr) = Vect (A.cons elem arr)
+cons elem (Vect arr) = Vect (Array.cons elem arr)
 
 -- -- | Attaches an element to the end of the `Vect`, creating a new `Vect` with size incremented.
 -- -- |
 snoc
   ∷ ∀ len len_plus_1 elem. Common.Snoc Vect len len_plus_1 elem
-snoc (Vect arr) elem = Vect (A.snoc arr elem)
+snoc (Vect arr) elem = Vect (Array.snoc arr elem)
 
 infixr 6 cons as :
 infixr 6 index as !!
