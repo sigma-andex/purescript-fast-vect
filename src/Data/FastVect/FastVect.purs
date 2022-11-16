@@ -1,26 +1,27 @@
 module Data.FastVect.FastVect
-  ( Vect
-  , replicate
-  , empty
-  , singleton
-  , append
-  , drop
-  , take
-  , splitAt
-  , modify
-  , set
-  , index
-  , indexModulo
-  , head
-  , fromArray
-  , toArray
-  , toNonEmptyArray
+  ( (:)
+  , Vect
   , adjust
   , adjustM
+  , append
   , cons
-  , snoc
+  , drop
+  , empty
+  , fromArray
+  , generate
+  , head
+  , index
+  , indexModulo
+  , modify
   , reifyVect
-  , (:)
+  , replicate
+  , set
+  , singleton
+  , snoc
+  , splitAt
+  , take
+  , toArray
+  , toNonEmptyArray
   ) where
 
 import Prelude
@@ -310,5 +311,8 @@ reifyVect
   → (∀ len. Vect len elem → r)
   → r
 reifyVect arr f = f (Vect arr)
+
+generate :: forall len elem. Common.Generate Vect len elem
+generate _ f = Vect $ map f $ Array.range 0 (Common.toInt (Proxy ∷ _ len) - 1)
 
 instance Common.IsVect (Vect n)

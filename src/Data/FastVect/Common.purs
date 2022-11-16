@@ -1,29 +1,31 @@
 module Data.FastVect.Common
-  ( Replicate
-  , Empty
-  , Sparse
-  , Singleton
-  , Append
-  , Drop
-  , Take
-  , SplitAt
-  , Modify
-  , Set
-  , Index
-  , IndexModulo
-  , Head
-  , IndexM
-  , IndexModuloM
-  , HeadM
+  ( Append
   , Cons
-  , Snoc
-  , Zero
+  , Drop
+  , Empty
+  , Generate
+  , Head
+  , HeadM
+  , Index
+  , IndexM
+  , IndexModulo
+  , IndexModuloM
+  , Modify
   , NegOne
   , One
+  , Replicate
+  , Set
+  , Singleton
+  , Snoc
+  , Sparse
+  , SplitAt
+  , Take
+  , Zero
   , class IsVect
   , term
   , toInt
-  ) where
+  )
+  where
 
 import Data.Maybe (Maybe)
 import Data.Reflectable (class Reflectable, reflectType)
@@ -290,3 +292,10 @@ type Snoc vect len len_plus_1 elem =
   ⇒ vect len elem
   → elem
   → vect len_plus_1 elem
+
+type Generate :: forall k. (k -> Type -> Type) -> k -> Type -> Type
+type Generate vect m elem =
+  Reflectable m Int
+  ⇒ Proxy m
+  → (Int → elem)
+  → vect m elem
