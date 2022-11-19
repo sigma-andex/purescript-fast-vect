@@ -62,6 +62,26 @@ type Generate matrix h w elem =
      )
   -> matrix h w elem
 
+type MapWithTerm matrix h w elem elem' =
+  Reflectable h Int
+  => Compare h NegOne GT
+  => Reflectable w Int
+  => Compare w NegOne GT
+  => ( forall i j
+        . Reflectable i Int
+       => Reflectable j Int
+       => Compare i h LT
+       => Compare j w LT
+       => Compare i NegOne GT
+       => Compare j NegOne GT
+       => Proxy i
+       -> Proxy j
+       -> elem
+       -> elem'
+     )
+  -> matrix h w elem
+  -> matrix h w elem'
+
 type Transpose :: forall k. (Int -> Int -> k -> Type) -> Int -> Int -> k -> Type
 type Transpose matrix h w elem =
   Reflectable h Int

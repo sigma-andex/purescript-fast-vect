@@ -12,6 +12,7 @@ module Data.FastVect.FastVect
   , head
   , index
   , indexModulo
+  , mapWithTerm
   , modify
   , reifyVect
   , replicate
@@ -32,7 +33,7 @@ import Data.Array.NonEmpty.Internal (NonEmptyArray(NonEmptyArray))
 import Data.FastVect.Common as Common
 import Data.Foldable (class Foldable)
 import Data.FoldableWithIndex (class FoldableWithIndex)
-import Data.FunctorWithIndex (class FunctorWithIndex)
+import Data.FunctorWithIndex (class FunctorWithIndex, mapWithIndex)
 import Data.Maybe (Maybe(..))
 import Data.Ord (abs)
 import Data.Reflectable (class Reflectable)
@@ -313,22 +314,39 @@ reifyVect
   → r
 reifyVect arr f = f (Vect arr)
 
-generate :: forall len elem. Common.Generate Vect len elem
-generate _ f = Vect $ map (\i -> coerceFunc f unit unit { reflectType: \_ -> i } Proxy) $ Array.range 0 (Common.toInt (Proxy ∷ _ len) - 1)
+unsafeCoerceTerm
+  :: forall len a
+   . Proxy len
+  → ( forall i
+       . Compare i Common.NegOne GT
+      ⇒ Compare i len LT
+      ⇒ Reflectable i Int
+      ⇒ Proxy i
+      → a
+    )
+  → Int
+  → a
+unsafeCoerceTerm _ f i = internal f unit unit { reflectType: \_ -> i } Proxy
   where
-  coerceFunc
+  internal
     :: ( forall i
           . Compare i Common.NegOne GT
          ⇒ Compare i len LT
          ⇒ Reflectable i Int
          ⇒ Proxy i
-         → elem
+         → a
        )
     → Unit
     → Unit
     → { reflectType :: Proxy _ -> Int }
     → Proxy _
-    → elem
-  coerceFunc = unsafeCoerce
+    → a
+  internal = unsafeCoerce
+
+generate :: forall len elem. Common.Generate Vect len elem
+generate _ f = Vect $ map (\i -> unsafeCoerceTerm (Proxy :: _ len) f i) $ Array.range 0 (Common.toInt (Proxy ∷ _ len) - 1)
+
+mapWithTerm :: forall len elem elem'. Common.MapWithTerm Vect len elem elem'
+mapWithTerm f vect = mapWithIndex (\i elem -> unsafeCoerceTerm (Proxy :: _ len) f i elem) vect
 
 instance Common.IsVect (Vect n)

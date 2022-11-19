@@ -1,23 +1,25 @@
 module Data.FastVect.Sparse.Read
-  ( Vect
-  , replicate
-  , empty
-  , sparse
-  , singleton
+  ( (:)
+  , Vect
   , append
+  , cons
   , drop
-  , take
-  , splitAt
-  , modify
-  , set
+  , empty
+  , fromMap
+  , generate
+  , head
   , index
   , indexModulo
-  , head
-  , fromMap
-  , toMap
-  , cons
+  , mapWithTerm
+  , modify
+  , replicate
+  , set
+  , singleton
   , snoc
-  , (:)
+  , sparse
+  , splitAt
+  , take
+  , toMap
   ) where
 
 import Prelude
@@ -27,7 +29,7 @@ import Data.FastVect.Common as Common
 import Data.Filterable (filterMap)
 import Data.Foldable (class Foldable)
 import Data.FoldableWithIndex (class FoldableWithIndex)
-import Data.FunctorWithIndex (class FunctorWithIndex)
+import Data.FunctorWithIndex (class FunctorWithIndex, mapWithIndex)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
@@ -35,12 +37,13 @@ import Data.Profunctor.Strong (first)
 import Data.Reflectable (class Reflectable)
 import Data.Traversable (class Traversable)
 import Data.TraversableWithIndex (class TraversableWithIndex)
-import Data.Tuple (fst)
+import Data.Tuple (Tuple(..), fst)
 import Data.Tuple.Nested ((/\))
 import Data.Unfoldable (unfoldr)
 import Prim.Int (class Compare)
-import Prim.Ordering (GT)
+import Prim.Ordering (GT, LT)
 import Type.Proxy (Proxy(..))
+import Unsafe.Coerce (unsafeCoerce)
 
 newtype Vect ∷ Int → Type → Type
 -- | A Sparse Vector Implementation backed by a `Map`. Medium-fast reads, medium-fast writes.
@@ -266,5 +269,43 @@ snoc (Vect xs) elem = Vect $ Map.insert (Common.toInt (Proxy :: _ len)) elem xs
 infixr 6 cons as :
 infixr 6 index as !!
 infixr 6 indexModulo as !%
+
+unsafeCoerceTerm
+  :: forall len a
+   . Proxy len
+  → ( forall i
+       . Compare i Common.NegOne GT
+      ⇒ Compare i len LT
+      ⇒ Reflectable i Int
+      ⇒ Proxy i
+      → a
+    )
+  → Int
+  → a
+unsafeCoerceTerm _ f i = internal f unit unit { reflectType: \_ -> i } Proxy
+  where
+  internal
+    :: ( forall i
+          . Compare i Common.NegOne GT
+         ⇒ Compare i len LT
+         ⇒ Reflectable i Int
+         ⇒ Proxy i
+         → a
+       )
+    → Unit
+    → Unit
+    → { reflectType :: Proxy _ -> Int }
+    → Proxy _
+    → a
+  internal = unsafeCoerce
+
+generate :: ∀ len elem. Common.Generate Vect len elem
+generate _ f = Vect
+  $ Map.fromFoldable
+  $ map (\i -> Tuple i (unsafeCoerceTerm (Proxy :: _ len) f i))
+  $ Array.range 0 (Common.toInt (Proxy :: _ len) - 1)
+
+mapWithTerm :: ∀ len elem elem'. Common.MapWithTerm Vect len elem elem'
+mapWithTerm f xs = mapWithIndex (\i elem -> unsafeCoerceTerm (Proxy :: _ len) f i elem) xs
 
 instance Common.IsVect (Vect n)

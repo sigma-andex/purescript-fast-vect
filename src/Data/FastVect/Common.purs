@@ -10,6 +10,7 @@ module Data.FastVect.Common
   , IndexM
   , IndexModulo
   , IndexModuloM
+  , MapWithTerm
   , Modify
   , NegOne
   , One
@@ -289,13 +290,6 @@ type Snoc vect len len_plus_1 elem =
   → elem
   → vect len_plus_1 elem
 
--- type Generate :: forall k. (k -> Type -> Type) -> k -> Type -> Type
--- type Generate vect m elem =
---   Reflectable m Int
---   ⇒ Proxy m
---   → (Int → elem)
---   → vect m elem
-
 type Generate vect m elem =
   Reflectable m Int
   ⇒ Compare m NegOne GT
@@ -307,3 +301,16 @@ type Generate vect m elem =
     ⇒ Proxy i
     → elem)
   → vect m elem
+
+type MapWithTerm vect m elem elem' =
+  Reflectable m Int
+  ⇒ Compare m NegOne GT
+  ⇒ (forall i.
+    Compare i NegOne GT
+    ⇒ Compare i m LT
+    ⇒ Reflectable i Int
+    ⇒ Proxy i
+    → elem
+    → elem')
+  → vect m elem
+  → vect m elem'

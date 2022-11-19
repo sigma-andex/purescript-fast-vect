@@ -55,12 +55,20 @@ spec =
 
           actualApplies `shouldEqual` expectedApplies
 
-        it "should generated" do
+        it "should be generated" do
           let
             generated = FM.generate (term :: _ 3) (term :: _ 2) \i j -> Common.toInt i + Common.toInt j
             matrix = FM.Matrix $ (0 : 1 : 2 : FV.empty) : (1 : 2 : 3 : FV.empty) : FV.empty
 
           generated `shouldEqual` matrix
+
+        it "should be mapped with terms" do
+          let
+            matrix = FM.Matrix $ (1 : 2 : 3 : FV.empty) : (4 : 5 : 6 : FV.empty) : FV.empty
+            mapped = FM.mapWithTerm (\i j x -> Common.toInt i + Common.toInt j + x) matrix
+            expected = FM.Matrix $ (1 : 3 : 5 : FV.empty) : (5 : 7 : 9 : FV.empty) : FV.empty
+
+          mapped `shouldEqual` expected
 
         it "should successfully transform" do
           let

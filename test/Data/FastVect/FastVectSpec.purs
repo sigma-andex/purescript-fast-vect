@@ -2,14 +2,14 @@ module Data.FastVect.FastVectSpec where
 
 import Prelude
 
-import Data.FastVect.FastVect as FV
 import Data.FastVect.Common as C
+import Data.FastVect.FastVect as FV
 import Data.FastVect.Sparse.Read as FVR
 import Data.FastVect.Sparse.Write as FVW
 import Data.Foldable (foldl)
-import Data.Semigroup.Foldable (foldl1, foldr1)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
+import Data.Semigroup.Foldable (foldl1, foldr1)
 import Data.Traversable (traverse)
 import Data.Tuple.Nested ((/\))
 import Test.Spec (Spec, describe, it)
@@ -84,6 +84,21 @@ spec =
             actualApplies = applies <*> pure 5
 
           actualApplies `shouldEqual` expectedApplies
+
+        it "should be generated" do
+          let
+            generated = FV.generate (C.term :: _ 4) \i -> C.toInt i
+            expectedGenerated = FV.cons 0 $ FV.cons 1 $ FV.cons 2 $ FV.cons 3 FV.empty
+          generated `shouldEqual` expectedGenerated
+
+        it "should be mapped with terms" do
+          let
+            vector = FV.cons 1 $ FV.cons 2 $ FV.cons 3 $ FV.cons 4 FV.empty
+
+            mapped = FV.mapWithTerm (\i a -> C.toInt i + a) vector
+            expectedMapped = FV.cons 1 $ FV.cons 3 $ FV.cons 5 $ FV.cons 7 FV.empty
+
+          mapped `shouldEqual` expectedMapped
     describe "Data.FastVect.Sparse.Read" do
       describe "fromArray" do
         it "should create a Vect from an Array" do

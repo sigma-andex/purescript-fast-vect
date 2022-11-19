@@ -9,6 +9,7 @@ module Data.FastVect.FastVect.Matrix
   , fromVectVect
   , generate
   , index
+  , mapWithTerm
   , modify
   , outerMap
   , outerProduct
@@ -33,10 +34,14 @@ import Data.FastVect.Common as Common
 import Data.FastVect.Common.Matrix as CommonM
 import Data.FastVect.FastVect (Vect)
 import Data.FastVect.FastVect as V
+import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndex, foldlWithIndex, foldrWithIndex)
+import Data.FunctorWithIndex (class FunctorWithIndex, mapWithIndex)
 import Data.Maybe (Maybe)
 import Data.Reflectable (class Reflectable)
 import Data.Semigroup.Foldable (class Foldable1, foldMap1, foldl1, foldr1)
 import Data.Traversable (class Foldable, class Traversable, foldMap, foldl, foldr, sequence, sum, traverse)
+import Data.TraversableWithIndex (class TraversableWithIndex, traverseWithIndex)
+import Data.Tuple (Tuple(..))
 import Prim.Int (class Compare)
 import Prim.Ordering (GT)
 
@@ -51,16 +56,24 @@ derive instance Ord a => Ord (Matrix h w a)
 instance Functor (Matrix h w) where
   map f (Matrix v) = Matrix $ map (map f) v
 
+instance FunctorWithIndex (Tuple Int Int) (Matrix h w) where
+  mapWithIndex f (Matrix v) = Matrix $ mapWithIndex (\i -> mapWithIndex (\j -> f (Tuple i j))) v
+
 instance Apply (Matrix h w) where
   apply (Matrix f) (Matrix v) = Matrix $ lift2 apply f v
 
 instance (Compare h Common.NegOne GT, Reflectable h Int, Compare w Common.NegOne GT, Reflectable w Int) ⇒ Applicative (Matrix h w) where
-  pure = replicate (Common.term) (Common.term)
+  pure = replicate Common.term Common.term
 
 instance Foldable (Matrix h w) where
   foldl f z (Matrix v) = foldl (foldl f) z v
   foldr f z (Matrix v) = foldr (flip $ foldr f) z v
   foldMap f (Matrix v) = foldMap (foldMap f) v
+
+instance FoldableWithIndex (Tuple Int Int) (Matrix h w) where
+  foldlWithIndex f z (Matrix v) = foldlWithIndex (\i -> foldlWithIndex (\j -> f (Tuple i j))) z v
+  foldrWithIndex f z (Matrix v) = foldrWithIndex (\i -> flip $ foldrWithIndex (\j -> f (Tuple i j))) z v
+  foldMapWithIndex f (Matrix v) = foldMapWithIndex (\i -> foldMapWithIndex (\j -> f (Tuple i j))) v
 
 instance (Compare h Common.Zero GT, Compare w Common.Zero GT) => Foldable1 (Matrix h w) where
   foldl1 f (Matrix v) = foldl1 f $ map (foldl1 f) v
@@ -71,14 +84,20 @@ instance Traversable (Matrix h w) where
   traverse f (Matrix v) = Matrix <$> traverse (traverse f) v
   sequence (Matrix v) = Matrix <$> traverse sequence v
 
+instance TraversableWithIndex (Tuple Int Int) (Matrix h w) where
+  traverseWithIndex f (Matrix v) = Matrix <$> traverseWithIndex (\i -> traverseWithIndex (\j -> f (Tuple i j))) v
+
 index :: forall h w i j elem. CommonM.Index Matrix h w i j elem
 index _ _ (Matrix m) = V.index (Common.term :: _ i) $ V.index (Common.term :: _ j) m
 
 replicate :: forall h w a. CommonM.Replicate Matrix h w a
-replicate _ _ a = Matrix $ V.replicate (Common.term) $ V.replicate (Common.term) a
+replicate _ _ a = Matrix $ V.replicate Common.term $ V.replicate Common.term a
 
 generate :: forall h w elem. CommonM.Generate Matrix h w elem
-generate _ _ f = Matrix $ V.generate (Common.term) \j -> V.generate (Common.term) \i -> f i j
+generate _ _ f = Matrix $ V.generate Common.term \j -> V.generate Common.term \i -> f i j
+
+mapWithTerm :: forall h w elem elem'. CommonM.MapWithTerm Matrix h w elem elem'
+mapWithTerm f (Matrix m) = Matrix $ V.mapWithTerm (\j -> V.mapWithTerm (\i -> f i j)) m
 
 toVectVect
   :: forall h w elem
@@ -121,7 +140,7 @@ fromVectArray
   => Reflectable w Int
   => Array (Vect h elem)
   -> Maybe (Matrix h w elem)
-fromVectArray arr = Matrix <$> V.fromArray (Common.term :: _ w) arr
+fromVectArray arr = Matrix <$> V.fromArray Common.term arr
 
 fromVect :: forall h elem. Compare h Common.NegOne GT => Vect h elem -> Matrix h 1 elem
 fromVect v = Matrix $ V.singleton v
@@ -139,7 +158,7 @@ singleton :: forall elem. elem -> Matrix 1 1 elem
 singleton a = Matrix $ V.singleton $ V.singleton a
 
 transpose :: forall h w elem. CommonM.Transpose Matrix h w elem
-transpose m = generate (Common.term :: _ w) (Common.term :: _ h) \i j -> index j i m
+transpose m = generate Common.term Common.term \i j -> index j i m
 
 dotProduct :: forall h elem. CommonM.DotProduct Vect h elem
 dotProduct v1 v2 = sum $ lift2 (*) v1 v2
@@ -151,11 +170,11 @@ outerProduct :: forall h w elem. CommonM.OuterProduct Vect Matrix h w elem
 outerProduct = outerMap (*)
 
 diag :: forall h elem. CommonM.Diag Vect Matrix h elem
-diag v = generate (Common.term :: _ h) (Common.term :: _ h)
+diag v = generate Common.term Common.term
   \i j -> if Common.toInt i == Common.toInt j then V.index i v else zero
 
 traced :: forall h elem. CommonM.Traced Vect Matrix h elem
-traced m = V.generate (Common.term :: _ h) \i -> index i i m
+traced m = V.generate Common.term \i -> index i i m
 
 trace :: forall h elem. CommonM.Trace Matrix h elem
 trace m = sum $ traced m
