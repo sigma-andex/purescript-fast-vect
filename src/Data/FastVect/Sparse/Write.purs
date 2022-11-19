@@ -280,7 +280,7 @@ indexModulo i (Vect xs) = List.findMap (\{ ix, elem } -> if moded == ix then Jus
 -- -- | elem ∷ String
 -- -- | elem = index (Common.term ∷ _ 299) vect
 -- -- | ```
-index ∷ ∀ m m_minus_one i n elem. Common.IndexM Vect m m_minus_one i n elem
+index ∷ ∀ m n elem. Common.IndexM Vect m n elem
 index proxy (Vect xs) = List.findMap (\{ ix, elem } -> if ixInt == ix then Just elem else Nothing) xs
   where
   ixInt = Common.toInt proxy

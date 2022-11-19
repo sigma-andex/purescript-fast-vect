@@ -238,26 +238,22 @@ type IndexModuloM vect m elem =
 -- -- | elem ∷ String
 -- -- | elem = index (term ∷ _ 299) vect
 -- -- | ```
-type Index vect m m_minus_one i n elem =
-  Compare m_minus_one NegOne GT
-  ⇒ Add One m_minus_one m
+type Index vect m n elem =
+  Reflectable m Int
+  ⇒ Compare m NegOne GT
   ⇒ Compare n NegOne GT
-  ⇒ Add i n m_minus_one
-  ⇒ Compare i NegOne GT
-  ⇒ Reflectable i Int
-  ⇒ Proxy i
-  → vect m elem
+  ⇒ Compare m n LT
+  ⇒ Proxy m
+  → vect n elem
   → elem
 
-type IndexM vect m m_minus_one i n elem =
-  Compare m_minus_one NegOne GT
-  ⇒ Add One m_minus_one m
+type IndexM vect m n elem =
+  Reflectable m Int
+  ⇒ Compare m NegOne GT
   ⇒ Compare n NegOne GT
-  ⇒ Add i n m_minus_one
-  ⇒ Compare i NegOne GT
-  ⇒ Reflectable i Int
-  ⇒ Proxy i
-  → vect m elem
+  ⇒ Compare m n LT
+  ⇒ Proxy m
+  → vect n elem
   → Maybe elem
 -- -- | Safely access the head of a `Vect`.
 -- -- |
@@ -293,9 +289,21 @@ type Snoc vect len len_plus_1 elem =
   → elem
   → vect len_plus_1 elem
 
-type Generate :: forall k. (k -> Type -> Type) -> k -> Type -> Type
+-- type Generate :: forall k. (k -> Type -> Type) -> k -> Type -> Type
+-- type Generate vect m elem =
+--   Reflectable m Int
+--   ⇒ Proxy m
+--   → (Int → elem)
+--   → vect m elem
+
 type Generate vect m elem =
   Reflectable m Int
+  ⇒ Compare m NegOne GT
   ⇒ Proxy m
-  → (Int → elem)
+  → (forall i.
+    Compare i NegOne GT
+    ⇒ Compare i m LT
+    ⇒ Reflectable i Int
+    ⇒ Proxy i
+    → elem)
   → vect m elem

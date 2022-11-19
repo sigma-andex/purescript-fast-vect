@@ -71,17 +71,14 @@ instance Traversable (Matrix h w) where
   traverse f (Matrix v) = Matrix <$> traverse (traverse f) v
   sequence (Matrix v) = Matrix <$> traverse sequence v
 
-index :: forall h h_minus_one w w_minus_one i j m n elem. CommonM.Index Matrix h h_minus_one w w_minus_one i j m n elem
+index :: forall h w i j elem. CommonM.Index Matrix h w i j elem
 index _ _ (Matrix m) = V.index (Common.term :: _ i) $ V.index (Common.term :: _ j) m
 
 replicate :: forall h w a. CommonM.Replicate Matrix h w a
 replicate _ _ a = Matrix $ V.replicate (Common.term) $ V.replicate (Common.term) a
 
-foreign import indexVImpl :: forall h elem. Int -> Vect h elem -> elem
-foreign import indexImpl :: forall h w elem. Int -> Int -> Matrix h w elem -> elem
-
 generate :: forall h w elem. CommonM.Generate Matrix h w elem
-generate _ _ f = Matrix $ V.generate (Common.term) $ \j -> V.generate (Common.term) $ \i -> f i j
+generate _ _ f = Matrix $ V.generate (Common.term) \j -> V.generate (Common.term) \i -> f i j
 
 toVectVect
   :: forall h w elem
@@ -142,7 +139,7 @@ singleton :: forall elem. elem -> Matrix 1 1 elem
 singleton a = Matrix $ V.singleton $ V.singleton a
 
 transpose :: forall h w elem. CommonM.Transpose Matrix h w elem
-transpose m = generate (Common.term :: _ w) (Common.term :: _ h) $ \i j -> indexImpl j i m
+transpose m = generate (Common.term :: _ w) (Common.term :: _ h) \i j -> index j i m
 
 dotProduct :: forall h elem. CommonM.DotProduct Vect h elem
 dotProduct v1 v2 = sum $ lift2 (*) v1 v2
@@ -154,10 +151,11 @@ outerProduct :: forall h w elem. CommonM.OuterProduct Vect Matrix h w elem
 outerProduct = outerMap (*)
 
 diag :: forall h elem. CommonM.Diag Vect Matrix h elem
-diag v = generate (Common.term :: _ h) (Common.term :: _ h) $ \i j -> if i == j then indexVImpl i v else zero
+diag v = generate (Common.term :: _ h) (Common.term :: _ h)
+  \i j -> if Common.toInt i == Common.toInt j then V.index i v else zero
 
 traced :: forall h elem. CommonM.Traced Vect Matrix h elem
-traced m = V.generate (Common.term :: _ h) \i -> indexImpl i i m
+traced m = V.generate (Common.term :: _ h) \i -> index i i m
 
 trace :: forall h elem. CommonM.Trace Matrix h elem
 trace m = sum $ traced m

@@ -212,7 +212,7 @@ indexModulo i (Vect xs) = Map.lookup (i `mod` Common.toInt (Proxy ∷ _ m)) xs
 -- -- | elem ∷ String
 -- -- | elem = index (Common.term ∷ _ 299) vect
 -- -- | ```
-index ∷ ∀ m m_minus_one i n elem. Common.IndexM Vect m m_minus_one i n elem
+index ∷ ∀ m n elem. Common.IndexM Vect m n elem
 index proxy (Vect xs) = Map.lookup (Common.toInt proxy) xs
 
 -- -- | Safely access the head of a `Vect`.

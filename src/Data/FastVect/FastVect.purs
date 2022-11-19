@@ -40,8 +40,9 @@ import Data.Semigroup.Foldable as Foldable1
 import Data.Traversable (class Traversable)
 import Data.TraversableWithIndex (class TraversableWithIndex)
 import Prim.Int (class Compare)
-import Prim.Ordering (GT)
+import Prim.Ordering (GT, LT)
 import Type.Proxy (Proxy(..))
+import Unsafe.Coerce (unsafeCoerce)
 
 newtype Vect ∷ Int → Type → Type
 -- | A Vector: A list-like data structure that encodes it's length in the type, backed by an `Array`.
@@ -210,7 +211,7 @@ foreign import indexImpl :: forall m elem. Int → Vect m elem → elem
 -- -- | elem ∷ String
 -- -- | elem = index (Common.term ∷ _ 299) vect
 -- -- | ```
-index ∷ ∀ m m_minus_one i n elem. Common.Index Vect m m_minus_one i n elem
+index ∷ ∀ m n elem. Common.Index Vect m n elem
 index = indexImpl <<< Common.toInt
 
 -- -- | Safely access the head of a `Vect`.
@@ -313,6 +314,21 @@ reifyVect
 reifyVect arr f = f (Vect arr)
 
 generate :: forall len elem. Common.Generate Vect len elem
-generate _ f = Vect $ map f $ Array.range 0 (Common.toInt (Proxy ∷ _ len) - 1)
+generate _ f = Vect $ map (\i -> coerceFunc f unit unit { reflectType: \_ -> i } Proxy) $ Array.range 0 (Common.toInt (Proxy ∷ _ len) - 1)
+  where
+  coerceFunc
+    :: ( forall i
+          . Compare i Common.NegOne GT
+         ⇒ Compare i len LT
+         ⇒ Reflectable i Int
+         ⇒ Proxy i
+         → elem
+       )
+    → Unit
+    → Unit
+    → { reflectType :: Proxy _ -> Int }
+    → Proxy _
+    → elem
+  coerceFunc = unsafeCoerce
 
 instance Common.IsVect (Vect n)

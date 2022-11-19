@@ -2,7 +2,9 @@ module Test.Data.FastVect.FastVectSpec.MatrixSpec where
 
 import Prelude
 
+import Data.FastVect.Common (term)
 import Data.FastVect.Common as C
+import Data.FastVect.Common as Common
 import Data.FastVect.FastVect ((:))
 import Data.FastVect.FastVect as FV
 import Data.FastVect.FastVect.Matrix as FM
@@ -52,6 +54,13 @@ spec =
             actualApplies = applies <*> matrix
 
           actualApplies `shouldEqual` expectedApplies
+
+        it "should generated" do
+          let
+            generated = FM.generate (term :: _ 3) (term :: _ 2) \i j -> Common.toInt i + Common.toInt j
+            matrix = FM.Matrix $ (0 : 1 : 2 : FV.empty) : (1 : 2 : 3 : FV.empty) : FV.empty
+
+          generated `shouldEqual` matrix
 
         it "should successfully transform" do
           let

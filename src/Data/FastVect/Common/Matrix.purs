@@ -2,27 +2,33 @@ module Data.FastVect.Common.Matrix where
 
 import Prelude
 
-import Data.FastVect.Common (NegOne, One, Zero)
+import Data.FastVect.Common (NegOne, Zero)
 import Data.Reflectable (class Reflectable)
-import Prim.Int (class Add, class Compare)
+import Prim.Int (class Compare)
 import Prim.Ordering (GT, LT)
 import Type.Proxy (Proxy)
 
-type Index matrix h h_minus_one w w_minus_one i j m n elem =
-  Compare h_minus_one NegOne GT
-  => Add One h_minus_one h
-  => Compare w_minus_one NegOne GT
-  => Add One w_minus_one w
-  => Compare m NegOne GT
-  => Add i m h_minus_one
+type Index matrix h w i j elem =
+  Compare h NegOne GT
+  => Compare w NegOne GT
   => Compare i NegOne GT
-  => Compare n NegOne GT
-  => Add j n w_minus_one
   => Compare j NegOne GT
+  => Compare i h LT
+  => Compare j w LT
   => Reflectable i Int
   => Reflectable j Int
   => Proxy i
   -> Proxy j
+  -> matrix h w elem
+  -> elem
+
+type IndexModulo matrix h w elem =
+  Compare h Zero GT
+  => Compare w Zero GT
+  => Reflectable h Int
+  => Reflectable w Int
+  => Int
+  -> Int
   -> matrix h w elem
   -> elem
 
@@ -43,7 +49,17 @@ type Generate matrix h w elem =
   => Compare w NegOne GT
   => Proxy h
   -> Proxy w
-  -> (Int -> Int -> elem)
+  -> ( forall i j
+        . Reflectable i Int
+       => Reflectable j Int
+       => Compare i h LT
+       => Compare j w LT
+       => Compare i NegOne GT
+       => Compare j NegOne GT
+       => Proxy i
+       -> Proxy j
+       -> elem
+     )
   -> matrix h w elem
 
 type Transpose :: forall k. (Int -> Int -> k -> Type) -> Int -> Int -> k -> Type
