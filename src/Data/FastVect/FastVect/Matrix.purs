@@ -14,6 +14,7 @@ module Data.FastVect.FastVect.Matrix
   , outerMap
   , outerProduct
   , product
+  , replicate
   , set
   , singleton
   , toArrayArray
@@ -45,6 +46,10 @@ import Data.Tuple (Tuple(..))
 import Prim.Int (class Compare)
 import Prim.Ordering (GT)
 
+-- | A matrix of elements of type `a`, implemented as a array vector of array vectors.
+-- | The first type argument represents the height of the matrix and the second type argument represents the width.
+-- | Note that the internal implementation is a horizontal row of vertical vectors.
+-- | This is because in mathematics, matrices are often treated as a row of vertical vectors.
 newtype Matrix h w a = Matrix (V.Vect w (V.Vect h a))
 
 instance (Show a, Compare h Common.NegOne GT, Compare w Common.NegOne GT) => Show (Matrix h w a) where
@@ -87,24 +92,30 @@ instance Traversable (Matrix h w) where
 instance TraversableWithIndex (Tuple Int Int) (Matrix h w) where
   traverseWithIndex f (Matrix v) = Matrix <$> traverseWithIndex (\i -> traverseWithIndex (\j -> f (Tuple i j))) v
 
+-- | Safely accesses the `j` -th element of the `i` -th row of `Matrix`.
 index :: forall h w i j elem. CommonM.Index Matrix h w i j elem
 index _ _ (Matrix m) = V.index (Common.term :: _ i) $ V.index (Common.term :: _ j) m
 
+-- | Create a `Matrix` by replicating the given element.
 replicate :: forall h w a. CommonM.Replicate Matrix h w a
 replicate _ _ a = Matrix $ V.replicate Common.term $ V.replicate Common.term a
 
+-- | Generate a `Matrix` by applying the given function to each type-level index.
 generate :: forall h w elem. CommonM.Generate Matrix h w elem
 generate _ _ f = Matrix $ V.generate Common.term \j -> V.generate Common.term \i -> f i j
 
+-- | Map a function over the elements of a `Matrix` with its type-level indices.
 mapWithTerm :: forall h w elem elem'. CommonM.MapWithTerm Matrix h w elem elem'
 mapWithTerm f (Matrix m) = Matrix $ V.mapWithTerm (\j -> V.mapWithTerm (\i -> f i j)) m
 
+-- | Convert a `Matrix` to a vector of vectors.
 toVectVect
   :: forall h w elem
    . Matrix h w elem
   -> Vect w (Vect h elem)
 toVectVect (Matrix v) = v
 
+-- | Convert a `Matrix` to a array of vectors.
 toVectArray
   :: forall h w elem
    . Compare h Common.NegOne GT
@@ -113,6 +124,7 @@ toVectArray
   -> Array (Vect h elem)
 toVectArray (Matrix m) = V.toArray m
 
+-- | Convert a nx1 `Matrix` to a vector.
 toVect
   :: forall h elem
    . Compare h Common.NegOne GT
@@ -120,6 +132,7 @@ toVect
   -> Vect h elem
 toVect (Matrix m) = V.index (Common.term :: _ 0) m
 
+-- | Convert a `Matrix` to a array of arrays.
 toArrayArray :: forall h w elem.
   Compare h Common.NegOne GT
   => Compare w Common.NegOne GT
@@ -127,12 +140,14 @@ toArrayArray :: forall h w elem.
   -> Array (Array elem)
 toArrayArray (Matrix m) = V.toArray $ map V.toArray m
 
+-- | Convert a vector of vectors to a `Matrix`.
 fromVectVect
   :: forall h w elem
    . Vect w (Vect h elem)
   -> Matrix h w elem
 fromVectVect = Matrix
 
+-- | Convert a vector of arrays to a `Matrix`.
 fromVectArray
   :: forall h w elem
    . Compare h Common.NegOne GT
@@ -142,9 +157,11 @@ fromVectArray
   -> Maybe (Matrix h w elem)
 fromVectArray arr = Matrix <$> V.fromArray Common.term arr
 
+-- | Convert a vector to a nx1 `Matrix`.
 fromVect :: forall h elem. Compare h Common.NegOne GT => Vect h elem -> Matrix h 1 elem
 fromVect v = Matrix $ V.singleton v
 
+-- | Convert an array of arrays to a `Matrix`.
 fromArrayArray :: forall h w elem. Compare h Common.NegOne GT
   => Compare w Common.NegOne GT
   => Reflectable w Int
@@ -154,46 +171,55 @@ fromArrayArray :: forall h w elem. Compare h Common.NegOne GT
   -> Maybe (Matrix h w elem)
 fromArrayArray arr = fromVectArray =<< (sequence $ map (V.fromArray Common.term) arr)
 
+-- | Create `Matrix` of one element.
 singleton :: forall elem. elem -> Matrix 1 1 elem
 singleton a = Matrix $ V.singleton $ V.singleton a
 
+-- | Transpose a `Matrix`.
 transpose :: forall h w elem. CommonM.Transpose Matrix h w elem
 transpose m = generate Common.term Common.term \i j -> index j i m
 
+-- | Dot product of two vectors.
 dotProduct :: forall h elem. CommonM.DotProduct Vect h elem
 dotProduct v1 v2 = sum $ lift2 (*) v1 v2
 
+-- | Outer product with multiplication function
 outerMap :: forall h w elemH elemW elem. CommonM.OuterMap Vect Matrix h w elemH elemW elem
 outerMap f v1 v2 = Matrix $ map (\elemW -> map (\elemH -> f elemH elemW) v1) v2
 
+-- | Outer product
 outerProduct :: forall h w elem. CommonM.OuterProduct Vect Matrix h w elem
 outerProduct = outerMap (*)
 
+-- | Create Matrix from its diagonal elements.
 diag :: forall h elem. CommonM.Diag Vect Matrix h elem
 diag v = generate Common.term Common.term
   \i j -> if Common.toInt i == Common.toInt j then V.index i v else zero
 
+-- | Get the diagonal elements of a `Matrix`.
 traced :: forall h elem. CommonM.Traced Vect Matrix h elem
 traced m = V.generate Common.term \i -> index i i m
 
+-- | Get sum of diagonal elements of a `Matrix`.
 trace :: forall h elem. CommonM.Trace Matrix h elem
 trace m = sum $ traced m
 
+-- | Transform a `Vector` by a `Matrix`.
 transform :: forall h w elem. CommonM.Transform Vect Matrix h w elem
-transform m v =
-  let
-    Matrix transposedVs = transpose m
-  in
-    map (dotProduct v) transposedVs
+transform m v = V.generate Common.term \i -> sum $ V.generate (Common.term :: _ w) \j -> index i j m * V.index j v
 
+-- | Matrix multiplication.
 product :: forall h m w elem. CommonM.Product Matrix h m w elem
 product m1 (Matrix vs) = Matrix $ map (\v -> transform m1 v) vs
 
+-- | Create empty `Matrix`.
 empty :: forall elem. CommonM.Empty Matrix elem
 empty = Matrix $ V.empty
 
+-- | Modify the `j` -th element of the `i` -th row of a `Matrix`.
 modify :: forall h w i j elem. CommonM.Modify Matrix h w i j elem
 modify _ _ f (Matrix m) = Matrix $ V.modify (Common.term :: _ j) (V.modify (Common.term :: _ i) f) m
 
+-- | Set the `j` -th element of the `i` -th row of a `Matrix`.
 set :: forall h w i j elem. CommonM.Set Matrix h w i j elem
 set i j a m = modify i j (const a) m
