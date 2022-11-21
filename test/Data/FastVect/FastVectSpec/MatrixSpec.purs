@@ -14,7 +14,7 @@ import Data.Traversable (foldl)
 import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldEqual)
 
-spec ∷ Spec Unit
+spec :: Spec Unit
 spec =
   describe "FastVect" do
     describe "Data.FastVect.FastVect.Matrix" do
@@ -22,13 +22,14 @@ spec =
         it "should create a Matrix from an Array of Array" do
           let
             testArr :: Array (Array Int)
-            testArr = [[1, 2, 3], [4, 5, 6]]
+            testArr = [ [ 1, 2, 3 ], [ 4, 5, 6 ] ]
 
-            actualSuccess ∷ Maybe (FM.Matrix 3 2 Int)
+            actualSuccess :: Maybe (FM.Matrix 3 2 Int)
             actualSuccess = FM.fromArrayArray testArr
 
             expectedSuccess = FM.Matrix $ (1 : 2 : 3 : FV.empty) : (4 : 5 : 6 : FV.empty) : FV.empty
-            actualFail ∷ Maybe (FM.Matrix 3 3 Int)
+
+            actualFail :: Maybe (FM.Matrix 3 3 Int)
             actualFail = FM.fromArrayArray testArr
 
           actualSuccess `shouldEqual` (Just expectedSuccess)
@@ -36,7 +37,7 @@ spec =
 
         it "should successfully acccess elements from a Matrix" do
           let
-            matrix ∷ FM.Matrix 3 2 Int
+            matrix :: FM.Matrix 3 2 Int
             matrix = FM.Matrix $ (1 : 2 : 3 : FV.empty) : (4 : 5 : 6 : FV.empty) : FV.empty
           (foldl (+) 0 matrix) `shouldEqual` 21
           (foldl1 (+) matrix) `shouldEqual` 21

@@ -16,22 +16,19 @@ import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldEqual)
 import Type.Proxy (Proxy(..))
 
-spec ∷ Spec Unit
+spec :: Spec Unit
 spec =
   describe "FastVect" do
     describe "Data.FastVect.FastVect" do
       describe "fromArray" do
         it "should create a Vect from an Array" do
           let
-            actualSuccess ∷ Maybe (FV.Vect 3 String)
-            actualSuccess = FV.fromArray (C.term ∷ _ 3) [ "a", "b", "c" ]
+            actualSuccess = FV.fromArray (C.term :: _ 3) [ "a", "b", "c" ]
 
             expectedSuccess = FV.append (FV.singleton "a") (FV.append (FV.singleton "b") (FV.singleton "c"))
-            actualFail1 ∷ Maybe (FV.Vect 4 String)
-            actualFail1 = FV.fromArray (C.term ∷ _ 4) [ "a", "b", "c" ]
+            actualFail1 = FV.fromArray (C.term :: _ 4) [ "a", "b", "c" ]
 
-            actualFail2 ∷ Maybe (FV.Vect 2 String)
-            actualFail2 = FV.fromArray (C.term ∷ _ 2) [ "a", "b", "c" ]
+            actualFail2 = FV.fromArray (C.term :: _ 2) [ "a", "b", "c" ]
           actualSuccess `shouldEqual` (Just expectedSuccess)
           actualFail1 `shouldEqual` Nothing
           actualFail2 `shouldEqual` Nothing
@@ -61,17 +58,17 @@ spec =
           let
             expectedPad = [ 0, 0, 0, 0, 0, 0, 0, 1, 2, 3 ]
 
-            actualPad = FV.adjust (C.term ∷ _ 10) 0 [ 1, 2, 3 ]
+            actualPad = FV.adjust (C.term :: _ 10) 0 [ 1, 2, 3 ]
 
             expectedDrop = [ 1, 2, 3 ]
 
-            actualDrop = FV.adjust (C.term ∷ _ 3) 0 [ 0, 0, 0, 0, 1, 2, 3 ]
+            actualDrop = FV.adjust (C.term :: _ 3) 0 [ 0, 0, 0, 0, 1, 2, 3 ]
 
             expectedEqual = [ 1, 2, 3, 4, 5 ]
-            actualEqual = FV.adjust (C.term ∷ _ 5) 0 [ 1, 2, 3, 4, 5 ]
+            actualEqual = FV.adjust (C.term :: _ 5) 0 [ 1, 2, 3, 4, 5 ]
 
             expectedPadM = [ "", "", "", "", "a", "b", "c" ]
-            actualPadM = FV.adjustM (C.term ∷ _ 7) [ "a", "b", "c" ]
+            actualPadM = FV.adjustM (C.term :: _ 7) [ "a", "b", "c" ]
           (FV.toArray actualPad) `shouldEqual` expectedPad
           (FV.toArray actualDrop) `shouldEqual` expectedDrop
           (FV.toArray actualEqual) `shouldEqual` expectedEqual
@@ -80,7 +77,7 @@ spec =
           let
             applies = FV.cons (add 1) $ FV.cons (add 42) $ FV.cons (mul 5) $ FV.cons (sub 6) FV.empty
 
-            expectedApplies = FV.cons 6 $ FV.cons  47 $ FV.cons  25 $ FV.cons 1 FV.empty
+            expectedApplies = FV.cons 6 $ FV.cons 47 $ FV.cons 25 $ FV.cons 1 FV.empty
             actualApplies = applies <*> pure 5
 
           actualApplies `shouldEqual` expectedApplies
@@ -103,15 +100,12 @@ spec =
       describe "fromArray" do
         it "should create a Vect from an Array" do
           let
-            actualSuccess ∷ Maybe (FVR.Vect 3 String)
-            actualSuccess = FVR.fromMap (C.term ∷ _ 3) $ Map.fromFoldable [ 0 /\ "a", 2 /\ "b", 1 /\ "c" ]
+            actualSuccess = FVR.fromMap (C.term :: _ 3) $ Map.fromFoldable [ 0 /\ "a", 2 /\ "b", 1 /\ "c" ]
 
             expectedSuccess = FVR.append (FVR.singleton "a") (FVR.append (FVR.singleton "c") (FVR.singleton "b"))
-            actualFail1 ∷ Maybe (FVR.Vect 4 String)
-            actualFail1 = FVR.fromMap (C.term ∷ _ 4) $ Map.fromFoldable [ 0 /\ "a", 22 /\ "b"]
+            actualFail1 = FVR.fromMap (C.term :: _ 4) $ Map.fromFoldable [ 0 /\ "a", 22 /\ "b" ]
 
-            actualFail2 ∷ Maybe (FVR.Vect 2 String)
-            actualFail2 = FVR.fromMap (C.term ∷ _ 2) $ Map.fromFoldable [ 0 /\ "a", 52 /\ "b" ]
+            actualFail2 = FVR.fromMap (C.term :: _ 2) $ Map.fromFoldable [ 0 /\ "a", 52 /\ "b" ]
           actualSuccess `shouldEqual` (Just expectedSuccess)
           actualFail1 `shouldEqual` Nothing
           actualFail2 `shouldEqual` Nothing
@@ -139,7 +133,7 @@ spec =
           let
             applies = FVR.cons (add 1) $ FVR.cons (add 42) $ FVR.cons (mul 5) $ FVR.cons (sub 6) FVR.empty
 
-            expectedApplies = FVR.cons 6 $ FVR.cons  47 $ FVR.cons  25 $ FVR.cons 1 FVR.empty
+            expectedApplies = FVR.cons 6 $ FVR.cons 47 $ FVR.cons 25 $ FVR.cons 1 FVR.empty
             actualApplies = applies <*> pure 5
 
           actualApplies `shouldEqual` expectedApplies
@@ -147,15 +141,12 @@ spec =
       describe "fromArray" do
         it "should create a Vect from an Array" do
           let
-            actualSuccess ∷ Maybe (FVW.Vect 3 String)
-            actualSuccess = FVW.fromMap (C.term ∷ _ 3) $ Map.fromFoldable [ 0 /\ "a", 2 /\ "b", 1 /\ "c" ]
+            actualSuccess = FVW.fromMap (C.term :: _ 3) $ Map.fromFoldable [ 0 /\ "a", 2 /\ "b", 1 /\ "c" ]
 
             expectedSuccess = FVW.append (FVW.singleton "a") (FVW.append (FVW.singleton "c") (FVW.singleton "b"))
-            actualFail1 ∷ Maybe (FVW.Vect 4 String)
-            actualFail1 = FVW.fromMap (C.term ∷ _ 4) $ Map.fromFoldable [ 0 /\ "a", 22 /\ "b"]
+            actualFail1 = FVW.fromMap (C.term :: _ 4) $ Map.fromFoldable [ 0 /\ "a", 22 /\ "b" ]
 
-            actualFail2 ∷ Maybe (FVW.Vect 2 String)
-            actualFail2 = FVW.fromMap (C.term ∷ _ 2) $ Map.fromFoldable [ 0 /\ "a", 52 /\ "b" ]
+            actualFail2 = FVW.fromMap (C.term :: _ 2) $ Map.fromFoldable [ 0 /\ "a", 52 /\ "b" ]
           actualSuccess `shouldEqual` (Just expectedSuccess)
           actualFail1 `shouldEqual` Nothing
           actualFail2 `shouldEqual` Nothing
@@ -186,7 +177,7 @@ spec =
           let
             applies = FVW.cons (add 1) $ FVW.cons (add 42) $ FVW.cons (mul 5) $ FVW.cons (sub 6) FVW.empty
 
-            expectedApplies = FVW.cons 6 $ FVW.cons  47 $ FVW.cons  25 $ FVW.cons 1 FVW.empty
+            expectedApplies = FVW.cons 6 $ FVW.cons 47 $ FVW.cons 25 $ FVW.cons 1 FVW.empty
             actualApplies = applies <*> pure 5
 
           actualApplies `shouldEqual` expectedApplies
