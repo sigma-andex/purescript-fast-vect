@@ -2,6 +2,12 @@
 
 Fast, type-safe vector libary for Purescript inspired by [Idris](https://www.idris-lang.org/). A vector is list with its size encoded in the type.
 
+## TOC
+- [Installation](#installation)
+- [Long story](#long-story)
+- [Example usage](#example-usage)
+- [Contributors](#contributors)
+
 ## Installation
 
 ```bash
@@ -52,7 +58,7 @@ Further functions that are defined differently to the `Array` functions are:
 
 You can find the full api on [pursuit](https://pursuit.purescript.org/packages/purescript-fast-vect/latest/docs/Data.FastVect.FastVect). 
 
-### Example usage 
+## Example usage 
 
 ```purescript
 import Prelude
@@ -91,3 +97,11 @@ big :: Vect 203948047908088915095071006 String
 big = FV.append big1 big2
 -- Note the big example will blow up during runtime.
 ```
+
+## Contributors
+
+In order of contribution:
+- [@sigma-andex](https://github.com/sigma-andex)
+- [@mikesol](https://github.com/mikesol)
+- [@JamieBallingall](https://github.com/JamieBallingall)
+- [@yukikurage](https://github.com/yukikurage)

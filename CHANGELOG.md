@@ -1,5 +1,10 @@
 # Changelog
 
+## [v1.0.0]
+- Add support for Matrices and `mapWithTerm` & `generate` for `Vect` (#16 by @yukikurage)
+- Add Foldable1 instance (#13 by @JamieBallingall)
+- Clean up code and readme (#15 & #12 by @JamieBallingall)
+
 ## [v0.7.0]
 - Add read & write optimised sparse vectors (#10 by @mikesol)
 
