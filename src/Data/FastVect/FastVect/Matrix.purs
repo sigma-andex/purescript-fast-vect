@@ -25,8 +25,7 @@ module Data.FastVect.FastVect.Matrix
   , traced
   , transform
   , transpose
-  )
-  where
+  ) where
 
 import Prelude
 
@@ -67,7 +66,7 @@ instance FunctorWithIndex (Tuple Int Int) (Matrix h w) where
 instance Apply (Matrix h w) where
   apply (Matrix f) (Matrix v) = Matrix $ lift2 apply f v
 
-instance (Compare h Common.NegOne GT, Reflectable h Int, Compare w Common.NegOne GT, Reflectable w Int) ⇒ Applicative (Matrix h w) where
+instance (Compare h Common.NegOne GT, Reflectable h Int, Compare w Common.NegOne GT, Reflectable w Int) => Applicative (Matrix h w) where
   pure = replicate Common.term Common.term
 
 instance Foldable (Matrix h w) where
@@ -133,8 +132,9 @@ toVect
 toVect (Matrix m) = V.index (Common.term :: _ 0) m
 
 -- | Convert a `Matrix` to a array of arrays.
-toArrayArray :: forall h w elem.
-  Compare h Common.NegOne GT
+toArrayArray
+  :: forall h w elem
+   . Compare h Common.NegOne GT
   => Compare w Common.NegOne GT
   => Matrix h w elem
   -> Array (Array elem)
@@ -162,7 +162,9 @@ fromVect :: forall h elem. Compare h Common.NegOne GT => Vect h elem -> Matrix h
 fromVect v = Matrix $ V.singleton v
 
 -- | Convert an array of arrays to a `Matrix`.
-fromArrayArray :: forall h w elem. Compare h Common.NegOne GT
+fromArrayArray
+  :: forall h w elem
+   . Compare h Common.NegOne GT
   => Compare w Common.NegOne GT
   => Reflectable w Int
   => Compare h Common.NegOne GT
