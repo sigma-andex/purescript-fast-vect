@@ -10,6 +10,7 @@
   , "profunctor"
   , "tuples"
   , "unfoldable"
+  , "unsafe-coerce"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs" ]
