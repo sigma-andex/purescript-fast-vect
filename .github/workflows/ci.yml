@@ -33,9 +33,4 @@ jobs:
             output
 
       - run: spago build
-
-      - run: |
-          npm ci
-          npm t
-
       - run: spago -x test.dhall test
