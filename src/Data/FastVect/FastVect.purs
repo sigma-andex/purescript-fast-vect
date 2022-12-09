@@ -10,6 +10,7 @@ module Data.FastVect.FastVect
   , fromArray
   , generate
   , head
+  , last
   , index
   , indexModulo
   , mapWithTerm
@@ -267,6 +268,18 @@ index = indexImpl <<< Common.toInt
 -- | ```
 head :: forall m elem. Common.Head Vect m elem
 head = indexImpl 0
+
+-- | Safely access the last element of a `Vect`.
+-- |
+-- | ```
+-- | vect :: Vect 300 String
+-- | vect = replicate (Common.term :: _ 300) "a"
+-- |
+-- | elem :: String
+-- | elem = last vect
+-- | ```
+last :: forall m elem. Common.Last Vect m elem
+last = indexImpl $ Common.toInt (Common.term :: _ m) - 1
 
 -- | Attempt to create a `Vect` of a given size from an `Array`.
 -- |

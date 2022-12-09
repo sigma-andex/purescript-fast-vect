@@ -11,6 +11,7 @@
 	- `Semiring`
 	- `Ring`
 	- `CommutativeRing`
+- Add `last` function for `Vect`
 
 ## [v1.0.0]
 - Add support for Matrices and `mapWithTerm` & `generate` for `Vect` (#16 by @yukikurage)

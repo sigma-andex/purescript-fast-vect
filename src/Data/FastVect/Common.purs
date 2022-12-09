@@ -6,6 +6,7 @@ module Data.FastVect.Common
   , Generate
   , Head
   , HeadM
+  , Last
   , Index
   , IndexM
   , IndexModulo
@@ -277,6 +278,21 @@ type HeadM vect m elem =
   Compare m Zero GT
   => vect m elem
   -> Maybe elem
+
+-- | Safely access the last element of a `Vect`.
+-- |
+-- | ```
+-- | vect :: Vect 300 String
+-- | vect = replicate (term :: _ 300) "a"
+-- |
+-- | elem :: String
+-- | elem = last vect
+-- | ```
+type Last vect m elem =
+  Compare m Zero GT
+  => Reflectable m Int
+  => vect m elem
+  -> elem
 
 -- | Attaches an element to the front of the `Vect`, creating a new `Vect` with size incremented.
 type Cons vect len len_plus_1 elem =
