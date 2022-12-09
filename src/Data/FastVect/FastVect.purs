@@ -25,11 +25,13 @@ module Data.FastVect.FastVect
   , toNonEmptyArray
   ) where
 
-import Prelude
+import Prelude hiding (append)
 
+import Control.Apply (lift2)
 import Data.Array as Array
 import Data.Array.NonEmpty as NEA
 import Data.Array.NonEmpty.Internal (NonEmptyArray(NonEmptyArray))
+import Data.Distributive (class Distributive, collectDefault, distribute)
 import Data.FastVect.Common as Common
 import Data.Foldable (class Foldable)
 import Data.FoldableWithIndex (class FoldableWithIndex)
@@ -38,8 +40,10 @@ import Data.Maybe (Maybe(..))
 import Data.Ord (abs)
 import Data.Reflectable (class Reflectable)
 import Data.Semigroup.Foldable as Foldable1
+import Data.Semigroup.Traversable as Traversable1
 import Data.Traversable (class Traversable)
 import Data.TraversableWithIndex (class TraversableWithIndex)
+import Prelude as Prelude
 import Prim.Int (class Compare)
 import Prim.Ordering (GT, LT)
 import Type.Proxy (Proxy(..))
@@ -66,6 +70,10 @@ instance Apply (Vect len) where
 instance (Compare len Common.NegOne GT, Reflectable len Int) => Applicative (Vect len) where
   pure = replicate (Proxy :: _ len)
 
+instance (Compare len Common.NegOne GT, Reflectable len Int) => Bind (Vect len) where
+  bind vec f = distribute f <*> vec
+
+instance (Compare len Common.NegOne GT, Reflectable len Int) => Monad (Vect len)
 derive newtype instance FunctorWithIndex Int (Vect len)
 derive newtype instance Foldable (Vect len)
 derive newtype instance FoldableWithIndex Int (Vect len)
@@ -77,6 +85,39 @@ instance (Compare len Common.Zero GT) => Foldable1.Foldable1 (Vect len) where
 
 derive newtype instance Traversable (Vect len)
 derive newtype instance TraversableWithIndex Int (Vect len)
+
+instance (Compare len Common.Zero GT) => Traversable1.Traversable1 (Vect len) where
+  traverse1 = Traversable1.traverse1Default
+  sequence1 xs = unsafeFromNonEmptyArray <$> (Traversable1.sequence1 $ toNonEmptyArray xs)
+    where
+    -- assumes the Traversable1 instance for NonEmptyArray keeps the same
+    -- amount of elements
+    unsafeFromNonEmptyArray = NEA.toArray >>> Vect
+
+instance (Compare len Common.NegOne GT, Reflectable len Int) => Distributive (Vect len) where
+  distribute :: forall a g. Functor g => g (Vect len a) -> Vect len (g a)
+  distribute xss = generate (Proxy :: _ len) f
+    where
+    f :: forall i. Compare i Common.NegOne GT => Compare i len LT => Reflectable i Int => Proxy i -> g a
+    f _ = index (Proxy :: _ i) <$> xss
+  collect = collectDefault
+
+instance Semigroup a => Semigroup (Vect len a) where
+  append = lift2 Prelude.append
+
+instance (Compare len Common.NegOne GT, Reflectable len Int, Monoid a) => Monoid (Vect len a) where
+  mempty = pure mempty
+
+instance (Compare len Common.NegOne GT, Reflectable len Int, Semiring a) => Semiring (Vect len a) where
+  add = lift2 add
+  zero = pure zero
+  mul = lift2 mul
+  one = pure one
+
+instance (Compare len Common.NegOne GT, Reflectable len Int, Ring a) => Ring (Vect len a) where
+  sub = lift2 sub
+
+instance (Compare len Common.NegOne GT, Reflectable len Int, CommutativeRing a) => CommutativeRing (Vect len a)
 
 -- | Create a `Vect` by replicating `len` times the given element
 -- |
