@@ -30,6 +30,7 @@ module Data.FastVect.FastVect.Matrix
 import Prelude
 
 import Control.Apply (lift2)
+import Data.Distributive (class Distributive, collectDefault, distribute)
 import Data.FastVect.Common as Common
 import Data.FastVect.Common.Matrix as CommonM
 import Data.FastVect.FastVect (Vect)
@@ -39,6 +40,7 @@ import Data.FunctorWithIndex (class FunctorWithIndex, mapWithIndex)
 import Data.Maybe (Maybe)
 import Data.Reflectable (class Reflectable)
 import Data.Semigroup.Foldable (class Foldable1, foldMap1, foldl1, foldr1)
+import Data.Semigroup.Traversable (class Traversable1, sequence1, traverse1)
 import Data.Traversable (class Foldable, class Traversable, foldMap, foldl, foldr, sequence, sum, traverse)
 import Data.TraversableWithIndex (class TraversableWithIndex, traverseWithIndex)
 import Data.Tuple (Tuple(..))
@@ -69,6 +71,11 @@ instance Apply (Matrix h w) where
 instance (Compare h Common.NegOne GT, Reflectable h Int, Compare w Common.NegOne GT, Reflectable w Int) => Applicative (Matrix h w) where
   pure = replicate Common.term Common.term
 
+instance (Compare h Common.Zero GT, Compare w Common.Zero GT, Reflectable h Int, Reflectable w Int) => Bind (Matrix h w) where
+  bind matrix f = distribute f <*> matrix
+
+instance (Compare h Common.Zero GT, Compare w Common.Zero GT, Reflectable h Int, Reflectable w Int) => Monad (Matrix h w)
+
 instance Foldable (Matrix h w) where
   foldl f z (Matrix v) = foldl (foldl f) z v
   foldr f z (Matrix v) = foldr (flip $ foldr f) z v
@@ -90,6 +97,31 @@ instance Traversable (Matrix h w) where
 
 instance TraversableWithIndex (Tuple Int Int) (Matrix h w) where
   traverseWithIndex f (Matrix v) = Matrix <$> traverseWithIndex (\i -> traverseWithIndex (\j -> f (Tuple i j))) v
+
+instance (Compare h Common.Zero GT, Compare w Common.Zero GT) => Traversable1 (Matrix h w) where
+  traverse1 f (Matrix v) = Matrix <$> traverse1 (traverse1 f) v
+  sequence1 (Matrix v) = Matrix <$> traverse1 sequence1 v
+
+instance (Compare h Common.Zero GT, Compare w Common.Zero GT, Reflectable h Int, Reflectable w Int) => Distributive (Matrix h w) where
+  distribute = map (\(Matrix v) -> v) >>> distribute >>> map distribute >>> Matrix
+  collect = collectDefault
+
+instance Semigroup a => Semigroup (Matrix h w a) where
+  append = lift2 append
+
+instance (Compare h Common.NegOne GT, Reflectable h Int, Compare w Common.NegOne GT, Reflectable w Int, Monoid a) => Monoid (Matrix h w a) where
+  mempty = pure mempty
+
+instance (Compare h Common.NegOne GT, Reflectable h Int, Compare w Common.NegOne GT, Reflectable w Int, Semiring a) => Semiring (Matrix h w a) where
+  add = lift2 add
+  zero = pure zero
+  mul = lift2 mul
+  one = pure one
+
+instance (Compare h Common.NegOne GT, Reflectable h Int, Compare w Common.NegOne GT, Reflectable w Int, Ring a) => Ring (Matrix h w a) where
+  sub = lift2 sub
+
+instance (Compare h Common.NegOne GT, Reflectable h Int, Compare w Common.NegOne GT, Reflectable w Int, CommutativeRing a) => CommutativeRing (Matrix h w a)
 
 -- | Safely accesses the `j` -th element of the `i` -th row of `Matrix`.
 index :: forall h w i j elem. CommonM.Index Matrix h w i j elem

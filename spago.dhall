@@ -1,6 +1,7 @@
 { name = "fast-vect"
 , dependencies =
   [ "arrays"
+  , "distributive"
   , "filterable"
   , "foldable-traversable"
   , "lists"

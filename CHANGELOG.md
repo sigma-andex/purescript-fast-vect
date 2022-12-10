@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+- Add new instances for `Vect` and `Matrix`:
+	- `Bind`
+	- `Monad`
+	- `Traversable1`
+	- `Distributive`
+	- `Semigroup`
+	- `Monoid`
+	- `Semiring`
+	- `Ring`
+	- `CommutativeRing`
+
 ## [v1.0.0]
 - Add support for Matrices and `mapWithTerm` & `generate` for `Vect` (#16 by @yukikurage)
 - Add Foldable1 instance (#13 by @JamieBallingall)
