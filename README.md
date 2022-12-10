@@ -105,3 +105,4 @@ In order of contribution:
 - [@mikesol](https://github.com/mikesol)
 - [@JamieBallingall](https://github.com/JamieBallingall)
 - [@yukikurage](https://github.com/yukikurage)
+- [@artemisSystem](https://github.com/artemisSystem)

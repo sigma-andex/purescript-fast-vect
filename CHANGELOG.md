@@ -1,7 +1,7 @@
 # Changelog
 
-## Unreleased
-- Add new instances for `Vect` and `Matrix`:
+## [v1.1.0]
+- Add new instances for `Vect` and `Matrix` (#23 by @artemisSystem):
 	- `Bind`
 	- `Monad`
 	- `Traversable1`
@@ -11,7 +11,7 @@
 	- `Semiring`
 	- `Ring`
 	- `CommutativeRing`
-- Add `last` function for `Vect`
+- Add `last` function for `Vect` (#24 by @artemisSystem)
 
 ## [v1.0.0]
 - Add support for Matrices and `mapWithTerm` & `generate` for `Vect` (#16 by @yukikurage)
