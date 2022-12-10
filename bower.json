@@ -15,6 +15,7 @@
     ],
     "dependencies": {
         "purescript-arrays": "^v7.0.0",
+        "purescript-distributive": "^v6.0.0",
         "purescript-filterable": "^v5.0.0",
         "purescript-foldable-traversable": "^v6.0.0",
         "purescript-lists": "^v7.0.0",
