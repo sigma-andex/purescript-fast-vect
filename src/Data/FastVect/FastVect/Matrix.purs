@@ -31,6 +31,7 @@ import Prelude
 
 import Control.Apply (lift2)
 import Data.Distributive (class Distributive, collectDefault, distribute)
+import Data.FastVect.Common (NegOne)
 import Data.FastVect.Common as Common
 import Data.FastVect.Common.Matrix as CommonM
 import Data.FastVect.FastVect (Vect)
@@ -45,7 +46,8 @@ import Data.Traversable (class Foldable, class Traversable, foldMap, foldl, fold
 import Data.TraversableWithIndex (class TraversableWithIndex, traverseWithIndex)
 import Data.Tuple (Tuple(..))
 import Prim.Int (class Compare)
-import Prim.Ordering (GT)
+import Prim.Ordering (GT, LT)
+import Type.Proxy (Proxy)
 
 -- | A matrix of elements of type `a`, implemented as a array vector of array vectors.
 -- | The first type argument represents the height of the matrix and the second type argument represents the width.
@@ -125,15 +127,15 @@ instance (Compare h Common.NegOne GT, Reflectable h Int, Compare w Common.NegOne
 
 -- | Safely accesses the `j` -th element of the `i` -th row of `Matrix`.
 index :: forall h w i j elem. CommonM.Index Matrix h w i j elem
-index _ _ (Matrix m) = V.index (Common.term :: _ i) $ V.index (Common.term :: _ j) m
+index _ _ (Matrix m) = V.index @i $ V.index @j m
 
 -- | Create a `Matrix` by replicating the given element.
 replicate :: forall h w a. CommonM.Replicate Matrix h w a
-replicate _ _ a = Matrix $ V.replicate Common.term $ V.replicate Common.term a
+replicate _ _ a = Matrix $ V.replicate @w $ V.replicate @h a
 
 -- | Generate a `Matrix` by applying the given function to each type-level index.
 generate :: forall h w elem. CommonM.Generate Matrix h w elem
-generate _ _ f = Matrix $ V.generate Common.term \j -> V.generate Common.term \i -> f i j
+generate _ _ f = Matrix $ V.generate @w \j -> V.generate @h \i -> f i j
 
 -- | Map a function over the elements of a `Matrix` with its type-level indices.
 mapWithTerm :: forall h w elem elem'. CommonM.MapWithTerm Matrix h w elem elem'
@@ -161,7 +163,7 @@ toVect
    . Compare h Common.NegOne GT
   => Matrix h 1 elem
   -> Vect h elem
-toVect (Matrix m) = V.index (Common.term :: _ 0) m
+toVect (Matrix m) = V.index @0 m
 
 -- | Convert a `Matrix` to a array of arrays.
 toArrayArray
@@ -187,7 +189,7 @@ fromVectArray
   => Reflectable w Int
   => Array (Vect h elem)
   -> Maybe (Matrix h w elem)
-fromVectArray arr = Matrix <$> V.fromArray Common.term arr
+fromVectArray arr = Matrix <$> V.fromArray @w arr
 
 -- | Convert a vector to a nx1 `Matrix`.
 fromVect :: forall h elem. Compare h Common.NegOne GT => Vect h elem -> Matrix h 1 elem
@@ -203,7 +205,7 @@ fromArrayArray
   => Reflectable h Int
   => Array (Array elem)
   -> Maybe (Matrix h w elem)
-fromArrayArray arr = fromVectArray =<< (sequence $ map (V.fromArray Common.term) arr)
+fromArrayArray arr = fromVectArray =<< (sequence $ map (V.fromArray @h) arr)
 
 -- | Create `Matrix` of one element.
 singleton :: forall elem. elem -> Matrix 1 1 elem
@@ -228,11 +230,14 @@ outerProduct = outerMap (*)
 -- | Create Matrix from its diagonal elements.
 diag :: forall h elem. CommonM.Diag Vect Matrix h elem
 diag v = generate Common.term Common.term
-  \i j -> if Common.toInt i == Common.toInt j then V.index i v else zero
+  \i j -> if Common.toIntP i == Common.toIntP j then vIndex i else zero
+  where
+  vIndex :: forall i. Reflectable i Int => Compare i NegOne GT => Compare i h LT => Proxy i -> elem
+  vIndex _ = V.index @i v
 
 -- | Get the diagonal elements of a `Matrix`.
 traced :: forall h elem. CommonM.Traced Vect Matrix h elem
-traced m = V.generate Common.term \i -> index i i m
+traced m = V.generate @h \i -> index i i m
 
 -- | Get sum of diagonal elements of a `Matrix`.
 trace :: forall h elem. CommonM.Trace Matrix h elem
@@ -240,7 +245,10 @@ trace m = sum $ traced m
 
 -- | Transform a `Vector` by a `Matrix`.
 transform :: forall h w elem. CommonM.Transform Vect Matrix h w elem
-transform m v = V.generate Common.term \i -> sum $ V.generate (Common.term :: _ w) \j -> index i j m * V.index j v
+transform m v = V.generate @h \i -> sum $ V.generate @w \j -> index i j m * vIndex j
+  where
+  vIndex :: forall j. Reflectable j Int => Compare j NegOne GT => Compare j w LT => Proxy j -> elem
+  vIndex _ = V.index @j v
 
 -- | Matrix multiplication.
 product :: forall h m w elem. CommonM.Product Matrix h m w elem
@@ -252,7 +260,7 @@ empty = Matrix $ V.empty
 
 -- | Modify the `j` -th element of the `i` -th row of a `Matrix`.
 modify :: forall h w i j elem. CommonM.Modify Matrix h w i j elem
-modify _ _ f (Matrix m) = Matrix $ V.modify (Common.term :: _ j) (V.modify (Common.term :: _ i) f) m
+modify _ _ f (Matrix m) = Matrix $ V.modify @j (V.modify @i f) m
 
 -- | Set the `j` -th element of the `i` -th row of a `Matrix`.
 set :: forall h w i j elem. CommonM.Set Matrix h w i j elem
