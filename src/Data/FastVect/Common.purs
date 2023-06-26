@@ -2,30 +2,40 @@ module Data.FastVect.Common
   ( Append
   , Cons
   , Drop
+  , DropP
   , Empty
   , Generate
+  , GenerateP
   , Head
   , HeadM
-  , Last
   , Index
   , IndexM
+  , IndexMP
   , IndexModulo
   , IndexModuloM
+  , IndexP
+  , Last
   , MapWithTerm
   , Modify
+  , ModifyP
   , NegOne
   , One
   , Replicate
+  , ReplicateP
   , Set
+  , SetP
   , Singleton
   , Snoc
   , Sparse
   , SplitAt
+  , SplitAtP
   , Take
+  , TakeP
   , Zero
   , class IsVect
   , term
   , toInt
+  , toIntP
   ) where
 
 import Data.Maybe (Maybe)
@@ -46,8 +56,11 @@ term :: forall (i :: Int). Proxy i
 term = Proxy
 
 -- | Convert a term to an Int
-toInt :: forall (len :: Int). Reflectable len Int => Proxy len -> Int
-toInt = reflectType
+toIntP :: forall (len :: Int). Reflectable len Int => Proxy len -> Int
+toIntP = reflectType
+
+toInt :: forall (@len :: Int). Reflectable len Int => Int
+toInt = reflectType (Proxy :: Proxy len)
 
 -- | Create a `Vect` by replicating `len` times the given element
 -- |
@@ -56,6 +69,12 @@ toInt = reflectType
 -- | vect = replicate (term :: _ 300) "a"
 -- | ```
 type Replicate vect len elem =
+  Compare len NegOne GT
+  => Reflectable len Int
+  => elem
+  -> vect len elem
+
+type ReplicateP vect len elem =
   Compare len NegOne GT
   => Reflectable len Int
   => Proxy len
@@ -126,6 +145,15 @@ type Drop vect m n m_plus_n elem =
   => Reflectable m Int
   => Compare m NegOne GT
   => Compare n NegOne GT
+  => vect m_plus_n elem
+  -> vect n elem
+
+type DropP :: forall k. (Int -> k -> Type) -> Int -> Int -> Int -> k -> Type
+type DropP vect m n m_plus_n elem =
+  Add m n m_plus_n
+  => Reflectable m Int
+  => Compare m NegOne GT
+  => Compare n NegOne GT
   => Proxy m
   -> vect m_plus_n elem
   -> vect n elem
@@ -146,6 +174,15 @@ type Take vect m n m_plus_n elem =
   => Reflectable m Int
   => Compare m NegOne GT
   => Compare n NegOne GT
+  => vect m_plus_n elem
+  -> vect m elem
+
+type TakeP :: forall k. (Int -> k -> Type) -> Int -> Int -> Int -> k -> Type
+type TakeP vect m n m_plus_n elem =
+  Add m n m_plus_n
+  => Reflectable m Int
+  => Compare m NegOne GT
+  => Compare n NegOne GT
   => Proxy m
   -> vect m_plus_n elem
   -> vect m elem
@@ -160,6 +197,15 @@ type Take vect m n m_plus_n elem =
 -- | newVect = modify (term :: _ 100) (append "b") vect
 -- | ```
 type Modify vect m n elem =
+  Reflectable m Int
+  => Compare m NegOne GT
+  => Compare n NegOne GT
+  => Compare m n LT
+  => (elem -> elem)
+  -> vect n elem
+  -> vect n elem
+
+type ModifyP vect m n elem =
   Reflectable m Int
   => Compare m NegOne GT
   => Compare n NegOne GT
@@ -183,6 +229,15 @@ type Set vect m n elem =
   => Compare m NegOne GT
   => Compare n NegOne GT
   => Compare m n LT
+  => elem
+  -> vect n elem
+  -> vect n elem
+
+type SetP vect m n elem =
+  Reflectable m Int
+  => Compare m NegOne GT
+  => Compare n NegOne GT
+  => Compare m n LT
   => Proxy m
   -> elem
   -> vect n elem
@@ -202,6 +257,15 @@ type Set vect m n elem =
 -- | ```
 type SplitAt :: forall k. (Int -> k -> Type) -> Int -> Int -> Int -> k -> Type
 type SplitAt vect m n m_plus_n elem =
+  Add m n m_plus_n
+  => Reflectable m Int
+  => Compare m NegOne GT
+  => Compare n NegOne GT
+  => vect m_plus_n elem
+  -> { before :: vect m elem, after :: vect n elem }
+
+type SplitAtP :: forall k. (Int -> k -> Type) -> Int -> Int -> Int -> k -> Type
+type SplitAtP vect m n m_plus_n elem =
   Add m n m_plus_n
   => Reflectable m Int
   => Compare m NegOne GT
@@ -247,11 +311,27 @@ type Index vect m n elem =
   => Compare m NegOne GT
   => Compare n NegOne GT
   => Compare m n LT
+  => vect n elem
+  -> elem
+
+type IndexP vect m n elem =
+  Reflectable m Int
+  => Compare m NegOne GT
+  => Compare n NegOne GT
+  => Compare m n LT
   => Proxy m
   -> vect n elem
   -> elem
 
 type IndexM vect m n elem =
+  Reflectable m Int
+  => Compare m NegOne GT
+  => Compare n NegOne GT
+  => Compare m n LT
+  => vect n elem
+  -> Maybe elem
+
+type IndexMP vect m n elem =
   Reflectable m Int
   => Compare m NegOne GT
   => Compare n NegOne GT
@@ -312,6 +392,18 @@ type Snoc vect len len_plus_1 elem =
   -> vect len_plus_1 elem
 
 type Generate vect m elem =
+  Reflectable m Int
+  => Compare m NegOne GT
+  => ( forall i
+        . Compare i NegOne GT
+       => Compare i m LT
+       => Reflectable i Int
+       => Proxy i
+       -> elem
+     )
+  -> vect m elem
+
+type GenerateP vect m elem =
   Reflectable m Int
   => Compare m NegOne GT
   => Proxy m

@@ -52,7 +52,7 @@ newtype Vect :: Int -> Type -> Type
 newtype Vect len elem = Vect (List.List { ix :: Int, elem :: elem })
 
 instance (Show elem, Reflectable len Int) => Show (Vect len elem) where
-  show (Vect elems) = "Vect.Sparse.Read " <> show (Common.toInt (Common.term :: _ len)) <> " " <> show elems
+  show (Vect elems) = "Vect.Sparse.Read " <> show (Common.toInt @len) <> " " <> show elems
 
 data JSSet
 
@@ -88,7 +88,7 @@ instance Apply (Vect len) where
   apply (Vect fab) (Vect a) = Vect $ asListOfTuples (asMap fab <*> asMap a)
 
 instance (Compare len Common.NegOne GT, Reflectable len Int) => Applicative (Vect len) where
-  pure = replicate (Proxy :: _ len)
+  pure = replicate @len
 
 instance FunctorWithIndex Int (Vect len) where
   mapWithIndex f (Vect xs) = Vect $ map (\{ ix, elem } -> { ix, elem: f ix elem }) xs
@@ -138,10 +138,10 @@ instance TraversableWithIndex Int (Vect len) where
 -- | vect :: Vect 300 String
 -- | vect = replicate (Common.term :: _ 300) "a"
 -- | ```
-replicate :: forall len elem. Common.Replicate Vect len elem
-replicate proxy elem = Vect $ (unfoldr (\i@{ ix } -> if ix == terminus then Nothing else Just (i /\ { ix: ix + 1, elem })) { ix: 0, elem })
+replicate :: forall @len elem. Common.Replicate Vect len elem
+replicate elem = Vect $ (unfoldr (\i@{ ix } -> if ix == terminus then Nothing else Just (i /\ { ix: ix + 1, elem })) { ix: 0, elem })
   where
-  terminus = Common.toInt proxy
+  terminus = Common.toInt @len
 
 -- | Creates the empty `Vect`.
 -- |
@@ -183,7 +183,7 @@ singleton elem = Vect (pure { ix: 0, elem })
 -- | cs = append as bs
 -- | ```
 append :: forall m n m_plus_n elem. Common.Append Vect m n m_plus_n elem
-append (Vect xs) (Vect ys) = Vect (xs <> map (\{ ix, elem } -> { ix: ix + (Common.toInt (Proxy :: _ m)), elem }) ys)
+append (Vect xs) (Vect ys) = Vect (xs <> map (\{ ix, elem } -> { ix: ix + (Common.toInt @m), elem }) ys)
 
 -- | Safely drop `m` elements from a `Vect`.
 -- | Will result in a compile-time error if you are trying to drop more elements than exist in the vector.
@@ -195,10 +195,10 @@ append (Vect xs) (Vect ys) = Vect (xs <> map (\{ ix, elem } -> { ix: ix + (Commo
 -- | newVect :: Vect 200 String
 -- | newVect = drop (Common.term :: _ 100) vect
 -- | ```
-drop :: forall m n m_plus_n elem. Common.Drop Vect m n m_plus_n elem
-drop proxy (Vect xs) = Vect (filterMap (\{ ix, elem } -> if ix >= drops then Just { ix: (ix - drops), elem } else Nothing) $ xs)
+drop :: forall @m n m_plus_n elem. Common.Drop Vect m n m_plus_n elem
+drop (Vect xs) = Vect (filterMap (\{ ix, elem } -> if ix >= drops then Just { ix: (ix - drops), elem } else Nothing) $ xs)
   where
-  drops = Common.toInt proxy
+  drops = Common.toInt @m
 
 -- | Safely take `m` elements from a `Vect`.
 -- | Will result in a compile-time error if you are trying to take more elements than exist in the vector.
@@ -210,10 +210,10 @@ drop proxy (Vect xs) = Vect (filterMap (\{ ix, elem } -> if ix >= drops then Jus
 -- | newVect :: Vect 100 String
 -- | newVect = take (Common.term :: _ 100) vect
 -- | ```
-take :: forall m n m_plus_n elem. Common.Take Vect m n m_plus_n elem
-take proxy (Vect xs) = Vect (filter (\{ ix } -> ix < takes) $ xs)
+take :: forall @m n m_plus_n elem. Common.Take Vect m n m_plus_n elem
+take (Vect xs) = Vect (filter (\{ ix } -> ix < takes) $ xs)
   where
-  takes = Common.toInt proxy
+  takes = Common.toInt @m
 
 -- | Safely modify element `m` from a `Vect`.
 -- |
@@ -224,8 +224,8 @@ take proxy (Vect xs) = Vect (filter (\{ ix } -> ix < takes) $ xs)
 -- | newVect :: Vect 100 String
 -- | newVect = modify (Common.term :: _ 100) (append "b") vect
 -- | ```
-modify :: forall m n elem. Common.Modify Vect m n elem
-modify proxy f (Vect xs) = Vect $ asListOfTuples $ Map.update (f >>> Just) (Common.toInt proxy) (asMap xs)
+modify :: forall @m n elem. Common.Modify Vect m n elem
+modify f (Vect xs) = Vect $ asListOfTuples $ Map.update (f >>> Just) (Common.toInt @m) (asMap xs)
 
 -- | Safely set element `m` from a `Vect`.
 -- |
@@ -236,11 +236,11 @@ modify proxy f (Vect xs) = Vect $ asListOfTuples $ Map.update (f >>> Just) (Comm
 -- | newVect :: Vect 100 String
 -- | newVect = modify (Common.term :: _ 100) "b" vect
 -- | ```
-set :: forall m n elem. Common.Set Vect m n elem
+set :: forall @m n elem. Common.Set Vect m n elem
 -- we use cons to represent that this is a newer value
 -- this will often cause a duplicate, but we don't care
 -- as we weed out duplicates during traversals
-set proxy elem (Vect xs) = Vect $ List.Cons { ix: Common.toInt proxy, elem } xs
+set elem (Vect xs) = Vect $ List.Cons { ix: Common.toInt @m, elem } xs
 
 -- | Split the `Vect` into two sub vectors `before` and `after`, where before contains up to `m` elements.
 -- |
@@ -254,10 +254,10 @@ set proxy elem (Vect xs) = Vect $ List.Cons { ix: Common.toInt proxy, elem } xs
 -- |   }
 -- | split = splitAt (Common.term :: _ 3) vect
 -- | ```
-splitAt :: forall m n m_plus_n elem. Common.SplitAt Vect m n m_plus_n elem
-splitAt proxy (Vect xs) = ((\{ yes, no } -> { before: Vect $ yes, after: Vect $ no }) $ List.partition (\{ ix } -> ix < splits) $ xs)
+splitAt :: forall @m n m_plus_n elem. Common.SplitAt Vect m n m_plus_n elem
+splitAt (Vect xs) = ((\{ yes, no } -> { before: Vect $ yes, after: Vect $ no }) $ List.partition (\{ ix } -> ix < splits) $ xs)
   where
-  splits = Common.toInt proxy
+  splits = Common.toInt @m
 
 -- | Safely access the `n`-th modulo m element of a `Vect`.
 -- |
@@ -271,7 +271,7 @@ splitAt proxy (Vect xs) = ((\{ yes, no } -> { before: Vect $ yes, after: Vect $ 
 indexModulo :: forall m elem. Common.IndexModuloM Vect m elem
 indexModulo i (Vect xs) = List.findMap (\{ ix, elem } -> if moded == ix then Just elem else Nothing) xs
   where
-  moded = i `mod` Common.toInt (Proxy :: _ m)
+  moded = i `mod` Common.toInt @m
 
 -- | Safely access the `i`-th element of a `Vect`.
 -- |
@@ -282,10 +282,10 @@ indexModulo i (Vect xs) = List.findMap (\{ ix, elem } -> if moded == ix then Jus
 -- | elem :: String
 -- | elem = index (Common.term :: _ 299) vect
 -- | ```
-index :: forall m n elem. Common.IndexM Vect m n elem
-index proxy (Vect xs) = List.findMap (\{ ix, elem } -> if ixInt == ix then Just elem else Nothing) xs
+index :: forall @m n elem. Common.IndexM Vect m n elem
+index (Vect xs) = List.findMap (\{ ix, elem } -> if ixInt == ix then Just elem else Nothing) xs
   where
-  ixInt = Common.toInt proxy
+  ixInt = Common.toInt @m
 
 -- | Safely access the head of a `Vect`.
 -- |
@@ -315,7 +315,7 @@ fromMap
   -> Maybe (Vect len elem)
 fromMap proxy mp
   | Just { key } <- Map.findMax mp
-  , key < Common.toInt proxy && key >= 0 = Just (Vect $ asListOfTuples mp)
+  , key < Common.toInt @len && key >= 0 = Just (Vect $ asListOfTuples mp)
 fromMap _ _ = Nothing
 
 -- | Converts the `Vect` to an `List`, effectively dropping the size information.
@@ -335,7 +335,7 @@ snoc :: forall len len_plus_1 elem. Common.Snoc Vect len len_plus_1 elem
 -- we use cons to represent that this is a newer value
 -- this will often cause a duplicate, but we don't care
 -- as we weed out duplicates during traversals
-snoc (Vect xs) elem = Vect $ List.Cons { ix: Common.toInt (Proxy :: _ len), elem } xs
+snoc (Vect xs) elem = Vect $ List.Cons { ix: Common.toInt @len, elem } xs
 
 infixr 6 cons as :
 infixr 6 index as !!
@@ -371,10 +371,10 @@ unsafeCoerceTerm _ f i = internal f unit unit { reflectType: \_ -> i } Proxy
   internal = unsafeCoerce
 
 -- | Generate a `Vect` of the given size by applying a function to each type level index.
-generate :: forall len elem. Common.Generate Vect len elem
-generate _ f = Vect
+generate :: forall @len elem. Common.Generate Vect len elem
+generate f = Vect
   $ map (\i -> { ix: i, elem: unsafeCoerceTerm (Proxy :: _ len) f i })
-  $ List.range 0 (Common.toInt (Proxy :: _ len) - 1)
+  $ List.range 0 (Common.toInt @len - 1)
 
 -- | Map a function over a `Vect` with the type level index of each element.
 mapWithTerm :: forall len elem elem'. Common.MapWithTerm Vect len elem elem'
