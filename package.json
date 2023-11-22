@@ -12,7 +12,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT-0",
   "bugs": {
     "url": "https://github.com/sigma-andex/purescript-fast-vect/issues"
   },
