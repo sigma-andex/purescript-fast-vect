@@ -173,3 +173,19 @@ spec =
             actualDiagMatrix = FM.diag vect
 
           actualDiagMatrix `shouldEqual` expectedDiagMatrix
+
+        it "should successfully evaluate component-wise division" do
+          let
+            matrix :: FM.Matrix 2 2 Int
+            matrix = FM.Matrix $ (1 : 2 : FV.empty) : (3 : 4 : FV.empty) : FV.empty
+
+            matrix2 :: FM.Matrix 2 2 Int
+            matrix2 = FM.Matrix $ (5 : 6 : FV.empty) : (7 : 8 : FV.empty) : FV.empty
+
+            expected :: FM.Matrix 2 2 Int
+            expected = FM.Matrix $ (1 / 5 : 2 / 6 : FV.empty) : (3 / 7 : 4 / 8 : FV.empty) : FV.empty
+
+            actual :: FM.Matrix 2 2 Int
+            actual = matrix / matrix2
+
+          actual `shouldEqual` expected

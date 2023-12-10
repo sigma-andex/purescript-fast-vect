@@ -127,6 +127,13 @@ instance (Compare len Common.NegOne GT, Reflectable len Int, Ring a) => Ring (Mi
 
 instance (Compare len Common.NegOne GT, Reflectable len Int, CommutativeRing a) => CommutativeRing (MinLenVect len a)
 
+instance (Compare len Common.NegOne GT, Reflectable len Int, EuclideanRing a) => EuclideanRing (MinLenVect len a) where
+  div = lift2 div
+  mod = lift2 mod
+  degree = const 1
+
+instance (Compare len Common.NegOne GT, Reflectable len Int, DivisionRing a) => DivisionRing (MinLenVect len a) where
+  recip = map recip
 
 -- | Create a `MinLenVect` by replicating `len` times the given element
 -- |

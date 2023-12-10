@@ -123,6 +123,14 @@ instance (Compare h Common.NegOne GT, Reflectable h Int, Compare w Common.NegOne
 
 instance (Compare h Common.NegOne GT, Reflectable h Int, Compare w Common.NegOne GT, Reflectable w Int, CommutativeRing a) => CommutativeRing (Matrix h w a)
 
+instance (Compare h Common.NegOne GT, Reflectable h Int, Compare w Common.NegOne GT, Reflectable w Int, EuclideanRing a) => EuclideanRing (Matrix h w a) where
+  div = lift2 div
+  mod = lift2 mod
+  degree = const 1
+
+instance (Compare h Common.NegOne GT, Reflectable h Int, Compare w Common.NegOne GT, Reflectable w Int, DivisionRing a) => DivisionRing (Matrix h w a) where
+  recip = map recip
+
 -- | Safely accesses the `j` -th element of the `i` -th row of `Matrix`.
 index :: forall h w i j elem. CommonM.Index Matrix h w i j elem
 index _ _ (Matrix m) = V.index (Common.term :: _ i) $ V.index (Common.term :: _ j) m
