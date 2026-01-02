@@ -20,6 +20,9 @@ module Data.FastVect.FastVect
   , set
   , singleton
   , snoc
+  , sort
+  , sortBy
+  , sortWith
   , splitAt
   , take
   , toArray
@@ -416,3 +419,21 @@ mapWithTerm :: forall len elem elem'. Common.MapWithTerm Vect len elem elem'
 mapWithTerm f vect = mapWithIndex (\i elem -> unsafeCoerceTerm (Proxy :: _ len) f i elem) vect
 
 instance Common.IsVect (Vect n)
+
+-- | Sort the elements of a vector in increasing order, creating a new vector.
+-- | Sorting is stable: the order of equal elements is preserved.
+sort :: forall len elem. Ord elem => Vect len elem -> Vect len elem
+sort (Vect elems) = Vect $ Array.sort elems
+
+-- | Sort the elements of a vector in increasing order, where elements are
+-- | compared using the specified partial ordering, creating a new vector.
+-- | Sorting is stable: the order of elements is preserved if they are equal
+-- | according to the specified partial ordering.
+sortBy :: forall len elem. (elem -> elem -> Ordering) -> Vect len elem -> Vect len elem
+sortBy f (Vect elems) = Vect $ Array.sortBy f elems
+
+-- | Sort the elements of a vector in increasing order, where elements are
+-- | sorted based on a projection. Sorting is stable: the order of elements is
+-- | preserved if they are equal according to the projection.
+sortWith :: forall len elem a. Ord a => (elem -> a) -> Vect len elem -> Vect len elem
+sortWith f (Vect elems) = Vect $ Array.sortWith f elems
