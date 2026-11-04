@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "spago -x test.dhall test"
+    "test": "spago test"
   },
   "repository": {
     "type": "git",
@@ -20,6 +20,6 @@
   "devDependencies": {
     "purescript": "^0.15.6",
     "purs-tidy": "^0.9.2",
-    "spago": "^0.20.9"
+    "spago": "1.0.5"
   }
 }
