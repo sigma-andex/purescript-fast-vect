@@ -21,7 +21,7 @@ jobs:
           spago: "1.0.5"
 
       - name: Cache PureScript dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         # This cache uses the spago.yaml files to know when it should reinstall
         # and rebuild packages. It caches both the installed packages from
         # the `.spago` directory and compilation artifacts from the `output`
